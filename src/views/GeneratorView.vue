@@ -12,11 +12,11 @@ const { copy, copied } = useClipboard()
 const generatorId = route.params.id as string
 const generator = computed(() => store.getGeneratorById(generatorId))
 const loading = ref(false)
-const result = ref<string | null>(null)
-const error = ref<string | null>(null)
+const result = ref(null)
+const error = ref(null)
 
 // Dynamic options state
-const options = ref<Record<string, any>>({})
+const options = ref({})
 
 onMounted(async () => {
   if (store.generators.length === 0) {
