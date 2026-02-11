@@ -111,6 +111,11 @@ pub fn run() {
     registry.register(crate::generators::impls::PersonGenerator);
     registry.register(crate::generators::impls::CompanyGenerator);
     registry.register(crate::generators::impls::VehicleGenerator);
+    registry.register(crate::generators::impls::CreditCardGenerator);
+    registry.register(crate::generators::impls::PasswordGenerator);
+    registry.register(crate::generators::impls::UuidGenerator);
+    registry.register(crate::generators::impls::LoremIpsumGenerator);
+    registry.register(crate::generators::impls::MetaTagsGenerator);
 
     tauri::Builder::default()
         .setup(|app| {

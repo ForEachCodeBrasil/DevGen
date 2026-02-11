@@ -4,13 +4,14 @@ pub mod impls;
 pub mod registry;
 pub mod utils;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum GeneratorCategory {
     Documents,
     Person,
     Company,
     Vehicle,
-    Utils,
+    Utilities,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -36,8 +37,21 @@ pub struct GenerateResponse {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GeneratorError {
-    pub message: String,
+pub enum GeneratorError {
+    NotFound,
+    InvalidOptions(String),
+    Internal(String),
+}
+
+// Implement Display for GeneratorError
+impl std::fmt::Display for GeneratorError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            GeneratorError::NotFound => write!(f, "Gerador não encontrado"),
+            GeneratorError::InvalidOptions(msg) => write!(f, "Opções inválidas: {}", msg),
+            GeneratorError::Internal(msg) => write!(f, "Erro interno: {}", msg),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
