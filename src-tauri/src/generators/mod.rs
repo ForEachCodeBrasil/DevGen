@@ -39,7 +39,26 @@ pub struct GeneratorError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppPreferences {
     pub locale: String,
-    // Add more fields later
+    pub quick_actions: Vec<String>,
+    pub history: Vec<String>, // TODO: Define specific HistoryItem struct later
+    pub generator_last_options: std::collections::HashMap<String, serde_json::Value>,
+}
+
+impl Default for AppPreferences {
+    fn default() -> Self {
+        Self {
+            locale: "pt-BR".into(),
+            quick_actions: vec![
+                "quick.copy_cpf_masked".into(),
+                "quick.copy_cnpj_masked".into(),
+                "quick.copy_person_full".into(),
+                "quick.copy_credit_card".into(),
+                "quick.copy_password".into(),
+            ],
+            history: vec![],
+            generator_last_options: std::collections::HashMap::new(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

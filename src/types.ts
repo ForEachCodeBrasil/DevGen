@@ -28,6 +28,9 @@ export interface GeneratorError {
 
 export interface AppPreferences {
     locale: string;
+    quick_actions: string[];
+    history: string[]; // TODO: Define specific HistoryItem struct later
+    generator_last_options: Record<string, any>;
 }
 
 export interface QuickGenerateResponse {

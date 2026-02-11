@@ -1,9 +1,12 @@
 mod generators;
+mod store;
 
 use generators::{
     registry::GeneratorRegistry, AppPreferences, GenerateRequest, GenerateResponse,
     GeneratorDefinition, GeneratorError, QuickGenerateResponse,
 };
+use std::sync::Arc;
+use store::Store;
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, TrayIconBuilder, TrayIconEvent},
@@ -12,6 +15,7 @@ use tauri::{
 
 struct AppState {
     registry: GeneratorRegistry,
+    store: Arc<Store>,
 }
 
 #[tauri::command]
@@ -39,22 +43,51 @@ fn quick_generate(
 }
 
 #[tauri::command]
-fn get_preferences() -> AppPreferences {
-    // Stub implementation
-    AppPreferences {
-        locale: "pt-BR".to_string(),
+fn get_preferences(state: State<'_, AppState>) -> Result<AppPreferences, String> {
+    state.store.get()
+}
+
+#[tauri::command]
+fn save_preferences(state: State<'_, AppState>, prefs: AppPreferences) -> Result<(), String> {
+    state.store.update(|p| *p = prefs)
+}
+
+#[tauri::command]
+fn rebuild_tray_quick_menu(app: tauri::AppHandle, quick: Vec<String>) -> Result<(), String> {
+    use tauri::menu::{MenuBuilder, MenuItemBuilder};
+
+    // Attempt to retrieve the tray (assuming ID "tray")
+    if let Some(tray) = app.tray_by_id("tray") {
+        let menu = MenuBuilder::new(&app).build().map_err(|e| e.to_string())?;
+
+        let show_i = MenuItemBuilder::with_id("show", "Abrir DevGen")
+            .build(&app)
+            .map_err(|e| e.to_string())?;
+        let quit_i = MenuItemBuilder::with_id("quit", "Sair")
+            .build(&app)
+            .map_err(|e| e.to_string())?;
+
+        menu.append(&show_i).map_err(|e| e.to_string())?;
+
+        // Add separator
+        // Note: PredefinedMenuItem::separator(&app) might be needed, using stub for now if complex
+
+        // Add Quick Actions
+        if !quick.is_empty() {
+            // For each quick action, add a menu item
+            for action_id in quick {
+                // ideally we'd look up the name, here we just use the ID as label for MVP
+                let item = MenuItemBuilder::with_id(&action_id, &action_id)
+                    .build(&app)
+                    .map_err(|e| e.to_string())?;
+                menu.append(&item).map_err(|e| e.to_string())?;
+            }
+        }
+
+        menu.append(&quit_i).map_err(|e| e.to_string())?;
+
+        tray.set_menu(Some(menu)).map_err(|e| e.to_string())?;
     }
-}
-
-#[tauri::command]
-fn save_preferences(_prefs: AppPreferences) -> Result<(), String> {
-    // Stub implementation
-    Ok(())
-}
-
-#[tauri::command]
-fn rebuild_tray_quick_menu(_quick: Vec<String>) -> Result<(), String> {
-    // Stub implementation
     Ok(())
 }
 
@@ -65,10 +98,13 @@ pub fn run() {
     // registry.register(MyGenerator::new());
 
     tauri::Builder::default()
-        .manage(AppState { registry })
         .setup(|app| {
             #[cfg(target_os = "macos")]
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+
+            let store = Arc::new(Store::new(app.app_handle()));
+            app.manage(AppState { registry, store });
+
             Ok(())
         })
         .plugin(tauri_plugin_opener::init())
