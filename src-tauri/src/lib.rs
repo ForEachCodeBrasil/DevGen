@@ -103,6 +103,10 @@ pub fn run() {
     registry.register(crate::generators::impls::PisGenerator);
     registry.register(crate::generators::impls::TituloEleitorGenerator);
     registry.register(crate::generators::impls::RenavamGenerator);
+    registry.register(crate::generators::impls::CertidaoNascimentoGenerator);
+    registry.register(crate::generators::impls::CertidaoCasamentoGenerator);
+    registry.register(crate::generators::impls::CertidaoObitoGenerator);
+    registry.register(crate::generators::impls::InscricaoEstadualGenerator);
 
     tauri::Builder::default()
         .setup(|app| {

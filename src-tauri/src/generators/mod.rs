@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 pub mod impls;
 pub mod registry;
+pub mod utils;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum GeneratorCategory {
