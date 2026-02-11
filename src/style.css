@@ -1,1 +1,36 @@
 @import "tailwindcss";
+
+@layer base {
+  :root {
+    --color-bg-app: rgba(20, 20, 20, 0.6);
+    --color-sidebar: rgba(10, 10, 10, 0.4);
+    --color-border: rgba(255, 255, 255, 0.1);
+    --color-text-primary: #e4e4e7; /* zinc-200 */
+    --color-text-secondary: #a1a1aa; /* zinc-400 */
+    --color-accent: #3b82f6; /* blue-500 */
+    --color-accent-hover: #2563eb; /* blue-600 */
+  }
+
+  body {
+    @apply bg-transparent text-white font-sans antialiased overflow-hidden;
+    /* macOS vibrancy requires transparent body */
+  }
+}
+
+@layer components {
+  .glass-panel {
+    @apply bg-zinc-900/40 backdrop-blur-md border border-white/5;
+  }
+  
+  .glass-button {
+    @apply px-3 py-1.5 rounded-md transition-all duration-200 
+           bg-white/5 hover:bg-white/10 active:bg-white/15
+           border border-white/5 text-sm font-medium text-zinc-300;
+  }
+
+  .glass-input {
+    @apply bg-zinc-950/50 border border-white/10 rounded-md px-3 py-2
+           text-sm text-zinc-200 placeholder-zinc-500
+           focus:outline-none focus:ring-1 focus:ring-blue-500/50 focus:border-blue-500/50;
+  }
+}

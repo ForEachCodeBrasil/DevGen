@@ -1,90 +1,64 @@
 <script setup lang="ts">
-import { onMounted, computed, ref } from 'vue'
-import { useGeneratorsStore } from '../stores/generators'
-import { useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { Search } from 'lucide-vue-next'
+import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { useGeneratorsStore } from '../stores/generators';
+import { Loader2, ArrowRight } from 'lucide-vue-next';
 
-const store = useGeneratorsStore()
-const router = useRouter()
-const { t } = useI18n()
+const router = useRouter();
+const store = useGeneratorsStore();
+const isLoading = ref(false);
 
-const searchQuery = ref('')
-const selectedCategory = ref<string | null>(null)
+const popularGenerators = [
+  'cpf', 'cnpj', 'uuid', 'credit_card', 'password'
+];
 
-onMounted(() => {
-  store.fetchGenerators()
-})
-
-const filteredGenerators = computed(() => {
-  return store.generators.filter(g => {
-    const matchesSearch = g.name.toLowerCase().includes(searchQuery.value.toLowerCase()) || 
-                          g.description.toLowerCase().includes(searchQuery.value.toLowerCase())
-    const matchesCategory = selectedCategory.value ? g.category === selectedCategory.value : true
-    return matchesSearch && matchesCategory
-  })
-})
-
-const categories = computed(() => store.categories)
-
-function openGenerator(id: string) {
-  router.push(`/generator/${id}`)
+function selectGenerator(id: string) {
+  router.push({ name: 'generator', params: { id } });
 }
+
+onMounted(async () => {
+  if (store.generators.length === 0) {
+    isLoading.value = true;
+    await store.fetchGenerators();
+    isLoading.value = false;
+  }
+});
 </script>
 
 <template>
-  <div class="space-y-6">
-    <div class="flex items-center space-x-4 bg-zinc-800/50 p-4 rounded-xl border border-white/5 backdrop-blur-sm sticky top-0 z-10">
-      <Search class="w-5 h-5 text-zinc-400" />
-      <input 
-        v-model="searchQuery" 
-        type="text" 
-        :placeholder="t('nav.search_placeholder')"
-        class="bg-transparent border-none focus:ring-0 text-white w-full placeholder-zinc-500"
-      >
-    </div>
-
-    <div class="flex space-x-2 overflow-x-auto pb-2">
-      <button 
-        @click="selectedCategory = null"
-        :class="[
-          'px-4 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap',
-          selectedCategory === null 
-            ? 'bg-blue-600 text-white' 
-            : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white'
-        ]"
-      >
-        Todos
-      </button>
-      <button 
-        v-for="cat in categories" 
-        :key="cat"
-        @click="selectedCategory = cat"
-        :class="[
-          'px-4 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap',
-          selectedCategory === cat 
-            ? 'bg-blue-600 text-white' 
-            : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white'
-        ]"
-      >
-        {{ cat }}
-      </button>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      <div 
-        v-for="gen in filteredGenerators" 
-        :key="gen.id"
-        @click="openGenerator(gen.id)"
-        class="group p-5 rounded-xl bg-zinc-900 border border-white/5 hover:border-blue-500/50 hover:bg-zinc-800/50 transition-all cursor-pointer relative overflow-hidden"
-      >
-        <div class="absolute top-0 left-0 w-1 h-full bg-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-        <h3 class="font-semibold text-zinc-100 mb-1 group-hover:text-blue-400 transition-colors">{{ gen.name }}</h3>
-        <p class="text-sm text-zinc-400 line-clamp-2">{{ gen.description }}</p>
-        <div class="mt-4 flex items-center justify-between">
-           <span class="text-xs text-zinc-500 font-mono bg-zinc-950 px-2 py-1 rounded">{{ gen.category }}</span>
-        </div>
+  <div class="flex flex-col items-center justify-center h-full max-w-2xl mx-auto text-center space-y-12">
+    <!-- Hero Section -->
+    <div class="space-y-4">
+      <div class="inline-flex items-center justify-center p-3 bg-blue-500/10 rounded-2xl mb-4">
+        <img src="/icon.png" alt="Logo" class="w-16 h-16 opacity-90" />
       </div>
+      <h1 class="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-white to-white/60">
+        DevGen
+      </h1>
+      <p class="text-lg text-zinc-400 max-w-md mx-auto">
+        Essential developer utilities, offline and privacy-first.
+      </p>
+    </div>
+
+    <!-- Quick Links -->
+    <div v-if="isLoading" class="flex justify-center">
+      <Loader2 class="w-8 h-8 text-blue-500 animate-spin" />
+    </div>
+
+    <div v-else class="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full px-4">
+      <button v-for="genId in popularGenerators" :key="genId" @click="selectGenerator(genId)"
+        class="glass-panel p-4 rounded-xl flex flex-col items-center gap-2 hover:bg-white/10 transition-all group">
+        <span class="text-sm font-medium text-zinc-300 group-hover:text-white capitalize">
+          {{ genId.replace('_', ' ') }}
+        </span>
+        <ArrowRight
+          class="w-4 h-4 text-zinc-600 group-hover:text-blue-400 opacity-0 group-hover:opacity-100 transition-all transform group-hover:translate-x-1" />
+      </button>
+    </div>
+
+    <!-- Keyboard Hint -->
+    <div class="text-xs text-zinc-600 font-mono bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
+      Use sidebar to browse all categories
     </div>
   </div>
 </template>

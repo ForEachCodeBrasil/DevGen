@@ -17,7 +17,10 @@
         "height": 600,
         "visible": false,
         "hiddenTitle": true,
-        "titleBarStyle": "Overlay"
+        "titleBarStyle": "Overlay",
+        "transparent": true,
+        "vibrancy": "under-window",
+        "vibrancyRadius": 20
       }
     ],
     "security": {

@@ -1,7 +1,18 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { invoke } from '@tauri-apps/api/core';
+import {
+  Search,
+  Settings,
+  FileText,
+  User,
+  Building2,
+  Car,
+  Wrench,
+  Grid2X2,
+  ChevronRight
+} from 'lucide-vue-next';
 
 interface GeneratorDefinition {
   id: string;
@@ -11,9 +22,22 @@ interface GeneratorDefinition {
 }
 
 const router = useRouter();
+const route = useRoute();
 const searchQuery = ref('');
 const generators = ref<GeneratorDefinition[]>([]);
 const selectedCategory = ref<string | null>(null);
+
+// Map categories to icons
+const getCategoryIcon = (category: string) => {
+  switch (category.toLowerCase()) {
+    case 'documents': return FileText;
+    case 'person': return User;
+    case 'company': return Building2;
+    case 'vehicle': return Car;
+    case 'utilities': return Wrench;
+    default: return Grid2X2;
+  }
+};
 
 const categories = computed(() => {
   const cats = new Set(generators.value.map(g => g.category));
@@ -23,7 +47,7 @@ const categories = computed(() => {
 const filteredGenerators = computed(() => {
   return generators.value.filter(g => {
     const matchesSearch = g.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-                          g.description.toLowerCase().includes(searchQuery.value.toLowerCase());
+      g.description.toLowerCase().includes(searchQuery.value.toLowerCase());
     const matchesCategory = selectedCategory.value ? g.category === selectedCategory.value : true;
     return matchesSearch && matchesCategory;
   });
@@ -47,162 +71,94 @@ onMounted(() => {
 </script>
 
 <template>
-  <aside class="sidebar">
-    <div class="sidebar-header">
-      <h2>DevGen</h2>
-      <input 
-        v-model="searchQuery" 
-        type="text" 
-        placeholder="Buscar geradores..." 
-        class="search-input"
-      />
+  <aside class="w-64 flex flex-col h-full border-r border-white/5 bg-zinc-950/30 backdrop-blur-sm"
+    data-tauri-drag-region>
+
+    <!-- Header / Drag Region -->
+    <div class="px-4 pt-6 pb-4 flex items-center justify-between pointer-events-none" data-tauri-drag-region>
+      <div class="flex items-center gap-2">
+        <div class="w-3 h-3 rounded-full bg-red-500/80"></div>
+        <div class="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+        <div class="w-3 h-3 rounded-full bg-green-500/80"></div>
+      </div>
     </div>
 
-    <div class="categories">
-      <button 
-        :class="{ active: selectedCategory === null }"
-        @click="selectedCategory = null"
-      >
-        Todos
+    <!-- Search -->
+    <div class="px-3 mb-4">
+      <div class="relative group">
+        <Search
+          class="absolute left-2.5 top-2 w-4 h-4 text-zinc-500 group-focus-within:text-blue-400 transition-colors" />
+        <input v-model="searchQuery" type="text" placeholder="Search..."
+          class="w-full bg-black/20 border border-white/5 rounded-lg pl-9 pr-3 py-1.5 text-sm text-zinc-300 placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all" />
+      </div>
+    </div>
+
+    <!-- Category Tabs -->
+    <div class="px-3 mb-2 flex gap-1 overflow-x-auto no-scrollbar pb-2">
+      <button @click="selectedCategory = null" :class="[
+        'px-2.5 py-1 rounded text-xs font-medium whitespace-nowrap transition-colors',
+        selectedCategory === null
+          ? 'bg-blue-600/20 text-blue-400 border border-blue-500/20'
+          : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/5'
+      ]">
+        All
       </button>
-      <button 
-        v-for="cat in categories" 
-        :key="cat"
-        :class="{ active: selectedCategory === cat }"
-        @click="selectedCategory = cat"
-      >
+      <button v-for="cat in categories" :key="cat" @click="selectedCategory = cat" :class="[
+        'px-2.5 py-1 rounded text-xs font-medium whitespace-nowrap transition-colors',
+        selectedCategory === cat
+          ? 'bg-blue-600/20 text-blue-400 border border-blue-500/20'
+          : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/5'
+      ]">
         {{ cat }}
       </button>
     </div>
 
-    <div class="generator-list">
-      <div 
-        v-for="gen in filteredGenerators" 
-        :key="gen.id"
-        class="generator-item"
-        @click="selectGenerator(gen.id)"
-      >
-        <span class="gen-name">{{ gen.name }}</span>
-        <span class="gen-desc">{{ gen.description }}</span>
+    <!-- Generator List -->
+    <div class="flex-1 overflow-y-auto px-2 space-y-0.5">
+      <div v-for="gen in filteredGenerators" :key="gen.id" @click="selectGenerator(gen.id)" :class="[
+        'group flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer transition-all duration-200',
+        route.params.id === gen.id
+          ? 'bg-blue-600/10 border border-blue-500/20'
+          : 'hover:bg-white/5 border border-transparent hover:border-white/5'
+      ]">
+        <div class="flex items-center gap-3 overflow-hidden">
+          <component :is="getCategoryIcon(gen.category)"
+            class="w-4 h-4 text-zinc-500 group-hover:text-blue-400 transition-colors flex-shrink-0" />
+          <div class="flex flex-col overflow-hidden">
+            <span :class="[
+              'text-sm font-medium truncate transition-colors',
+              route.params.id === gen.id ? 'text-blue-100' : 'text-zinc-300 group-hover:text-white'
+            ]">
+              {{ gen.name }}
+            </span>
+          </div>
+        </div>
+
+        <ChevronRight :class="[
+          'w-3 h-3 text-zinc-600 transition-transform duration-200',
+          route.params.id === gen.id ? 'text-blue-500' : 'group-hover:translate-x-0.5 group-hover:text-zinc-400 opacity-0 group-hover:opacity-100'
+        ]" />
       </div>
     </div>
-    
-    <div class="sidebar-footer">
-        <button @click="router.push('/settings')">Configurações</button>
+
+    <!-- Footer -->
+    <div class="p-3 border-t border-white/5 mt-auto">
+      <button @click="router.push('/settings')"
+        class="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors">
+        <Settings class="w-4 h-4" />
+        <span class="text-sm font-medium">Settings</span>
+      </button>
     </div>
   </aside>
 </template>
 
 <style scoped>
-.sidebar {
-  width: 250px;
-  background-color: #f0f0f0;
-  border-right: 1px solid #ddd;
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
-.sidebar-header {
-  padding: 1rem;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.search-input {
-  width: 100%;
-  padding: 0.5rem;
-  margin-top: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-.categories {
-  padding: 0.5rem;
-  display: flex;
-  gap: 0.5rem;
-  overflow-x: auto;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.categories button {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.8rem;
-  background: none;
-  border: none;
-  cursor: pointer;
-  opacity: 0.7;
-}
-
-.categories button.active {
-  font-weight: bold;
-  opacity: 1;
-  border-bottom: 2px solid #396cd8;
-}
-
-.generator-list {
-  flex: 1;
-  overflow-y: auto;
-  padding: 0.5rem;
-}
-
-.generator-item {
-  padding: 0.75rem;
-  cursor: pointer;
-  border-radius: 4px;
-  margin-bottom: 0.5rem;
-  display: flex;
-  flex-direction: column;
-}
-
-.generator-item:hover {
-  background-color: #e0e0e0;
-}
-
-.gen-name {
-  font-weight: bold;
-  font-size: 0.9rem;
-}
-
-.gen-desc {
-  font-size: 0.75rem;
-  color: #666;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.sidebar-footer {
-    padding: 1rem;
-    border-top: 1px solid #e0e0e0;
-}
-
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .sidebar {
-    background-color: #1e1e1e;
-    border-right-color: #333;
-  }
-  
-  .sidebar-header, .categories, .sidebar-footer {
-    border-color: #333;
-  }
-  
-  .search-input {
-    background-color: #2d2d2d;
-    border-color: #444;
-    color: #fff;
-  }
-  
-  .generator-item:hover {
-    background-color: #2d2d2d;
-  }
-  
-  .gen-desc {
-    color: #aaa;
-  }
-  
-  .categories button {
-      color: #eee;
-  }
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 </style>

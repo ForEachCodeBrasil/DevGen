@@ -17,19 +17,33 @@ import Sidebar from '../components/Sidebar.vue';
   height: 100vh;
   width: 100vw;
   overflow: hidden;
+  background-color: transparent;
+  /* Essential for vibrancy */
 }
 
 .content-area {
   flex: 1;
   overflow-y: auto;
-  padding: 2rem;
-  background-color: var(--bg-color, #fff);
+  padding: 1.5rem;
+  background-color: transparent;
+  /* Let the global app bg or vibrancy show through */
 }
 
-@media (prefers-color-scheme: dark) {
-  .content-area {
-    background-color: #121212;
-    color: #e0e0e0;
-  }
+/* Custom scrollbar for webkit */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 </style>
