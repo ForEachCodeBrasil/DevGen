@@ -17,6 +17,8 @@ pub struct GeneratorDefinition {
     pub name: String,
     pub category: GeneratorCategory,
     pub description: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub options: Option<serde_json::Value>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

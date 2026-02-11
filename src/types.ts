@@ -10,6 +10,7 @@ export interface GeneratorDefinition {
     name: string;
     category: GeneratorCategory;
     description: string;
+    options?: Record<string, any>; // JSON Schema or similar
 }
 
 export interface GenerateRequest {

@@ -1,0 +1,14 @@
+{
+  "nav": {
+    "home": "Home",
+    "settings": "Settings",
+    "search_placeholder": "Search generators..."
+  },
+  "home": {
+    "welcome": "Welcome to DevGen"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language"
+  }
+}

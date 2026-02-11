@@ -1,0 +1,14 @@
+{
+  "nav": {
+    "home": "Início",
+    "settings": "Configurações",
+    "search_placeholder": "Buscar geradores..."
+  },
+  "home": {
+    "welcome": "Bem-vindo ao DevGen"
+  },
+  "settings": {
+    "title": "Configurações",
+    "language": "Idioma"
+  }
+}
