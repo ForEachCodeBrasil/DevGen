@@ -98,6 +98,11 @@ pub fn run() {
     // Register generators
     registry.register(crate::generators::impls::CpfGenerator);
     registry.register(crate::generators::impls::CnpjGenerator);
+    registry.register(crate::generators::impls::RgGenerator);
+    registry.register(crate::generators::impls::CnhGenerator);
+    registry.register(crate::generators::impls::PisGenerator);
+    registry.register(crate::generators::impls::TituloEleitorGenerator);
+    registry.register(crate::generators::impls::RenavamGenerator);
 
     tauri::Builder::default()
         .setup(|app| {

@@ -1,15 +1,12 @@
-<script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGeneratorsStore } from '../stores/generators'
-import { usePreferencesStore } from '../stores/preferences'
-import { ArrowLeft, Play, Copy, RefreshCw, Check, Loader2 } from 'lucide-vue-next'
+import { ArrowLeft, Play, Copy, Check, Loader2 } from 'lucide-vue-next'
 import { useClipboard } from '@vueuse/core'
 
 const route = useRoute()
 const router = useRouter()
 const store = useGeneratorsStore()
-const prefs = usePreferencesStore()
 const { copy, copied } = useClipboard()
 
 const generatorId = route.params.id as string
@@ -31,9 +28,18 @@ onMounted(async () => {
     return
   }
 
-  // Load last options or defaults
-  // For now, no options are defined in definition, so just empty
-  options.value = {} 
+  // Load defaults from options schema
+  if (generator.value?.options?.fields) {
+    const defaults: Record<string, any> = {}
+    for (const field of generator.value.options.fields) {
+      if (field.default !== undefined) {
+        defaults[field.name] = field.default
+      }
+    }
+    options.value = defaults
+  } else {
+    options.value = {}
+  } 
 })
 
 async function handleGenerate() {
@@ -85,12 +91,42 @@ function handleCopy() {
       </div>
     </div>
 
-    <!-- Options Panel (Placeholder for dynamic forms) -->
+    <!-- Options Panel -->
     <div class="bg-zinc-900 rounded-xl border border-white/5 p-6">
-      <div v-if="Object.keys(options).length === 0" class="text-center py-4 text-zinc-500 text-sm">
+      <div v-if="!generator.options || !generator.options.fields || generator.options.fields.length === 0" class="text-center py-4 text-zinc-500 text-sm">
         Este gerador não possui opções configuráveis.
       </div>
-      <!-- Dynamic form would go here -->
+      
+      <div v-else class="space-y-4">
+        <div v-for="field in generator.options.fields" :key="field.name" class="flex items-center justify-between">
+          <label :for="field.name" class="text-sm font-medium text-zinc-300">{{ field.label }}</label>
+          
+          <!-- Boolean Toggle -->
+          <button 
+            v-if="field.type === 'boolean'"
+            @click="options[field.name] = !options[field.name]"
+            :class="[
+              'w-11 h-6 rounded-full transition-colors relative focus:outline-none focus:ring-2 focus:ring-blue-500/50',
+              options[field.name] ? 'bg-blue-600' : 'bg-zinc-700'
+            ]"
+          >
+            <span 
+              :class="[
+                'absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform',
+                options[field.name] ? 'translate-x-5' : 'translate-x-0'
+              ]"
+            />
+          </button>
+
+          <!-- Text Input (Fallback) -->
+          <input 
+            v-else
+            v-model="options[field.name]"
+            type="text"
+            class="bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-blue-500"
+          >
+        </div>
+      </div>
     </div>
 
     <!-- Action Bar -->
