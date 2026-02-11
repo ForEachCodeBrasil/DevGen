@@ -1,0 +1,22 @@
+[
+  { "city": "São Paulo", "state": "SP" },
+  { "city": "Rio de Janeiro", "state": "RJ" },
+  { "city": "Belo Horizonte", "state": "MG" },
+  { "city": "Salvador", "state": "BA" },
+  { "city": "Fortaleza", "state": "CE" },
+  { "city": "Brasília", "state": "DF" },
+  { "city": "Curitiba", "state": "PR" },
+  { "city": "Manaus", "state": "AM" },
+  { "city": "Recife", "state": "PE" },
+  { "city": "Porto Alegre", "state": "RS" },
+  { "city": "Belém", "state": "PA" },
+  { "city": "Goiânia", "state": "GO" },
+  { "city": "Guarulhos", "state": "SP" },
+  { "city": "Campinas", "state": "SP" },
+  { "city": "São Luís", "state": "MA" },
+  { "city": "São Gonçalo", "state": "RJ" },
+  { "city": "Maceió", "state": "AL" },
+  { "city": "Duque de Caxias", "state": "RJ" },
+  { "city": "Campo Grande", "state": "MS" },
+  { "city": "Natal", "state": "RN" }
+]

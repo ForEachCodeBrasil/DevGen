@@ -1,3 +1,4 @@
+pub mod datasets;
 mod generators;
 mod store;
 
@@ -107,6 +108,9 @@ pub fn run() {
     registry.register(crate::generators::impls::CertidaoCasamentoGenerator);
     registry.register(crate::generators::impls::CertidaoObitoGenerator);
     registry.register(crate::generators::impls::InscricaoEstadualGenerator);
+    registry.register(crate::generators::impls::PersonGenerator);
+    registry.register(crate::generators::impls::CompanyGenerator);
+    registry.register(crate::generators::impls::VehicleGenerator);
 
     tauri::Builder::default()
         .setup(|app| {

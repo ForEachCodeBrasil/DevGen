@@ -1,0 +1,12 @@
+[
+  { "brand": "Chevrolet", "models": ["Onix", "Prisma", "S10", "Cruze", "Tracker"] },
+  { "brand": "Volkswagen", "models": ["Gol", "Polo", "Virtus", "T-Cross", "Nivus", "Amarok"] },
+  { "brand": "Fiat", "models": ["Strada", "Argo", "Mobi", "Toro", "Pulse", "Cronos"] },
+  { "brand": "Hyundai", "models": ["HB20", "Creta", "HB20S"] },
+  { "brand": "Toyota", "models": ["Corolla", "Hilux", "Yaris", "Corolla Cross"] },
+  { "brand": "Jeep", "models": ["Renegade", "Compass", "Commander"] },
+  { "brand": "Renault", "models": ["Kwid", "Duster", "Sandero", "Logan"] },
+  { "brand": "Honda", "models": ["HR-V", "City", "Civic"] },
+  { "brand": "Nissan", "models": ["Kicks", "Versa", "Frontier"] },
+  { "brand": "Ford", "models": ["Ranger", "Territory", "Maverick"] }
+]
