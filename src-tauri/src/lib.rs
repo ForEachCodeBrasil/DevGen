@@ -1,25 +1,85 @@
+mod generators;
+
+use generators::{
+    registry::GeneratorRegistry, AppPreferences, GenerateRequest, GenerateResponse,
+    GeneratorDefinition, GeneratorError, QuickGenerateResponse,
+};
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, TrayIconBuilder, TrayIconEvent},
-    Manager,
+    Manager, State,
 };
 
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
+struct AppState {
+    registry: GeneratorRegistry,
+}
+
 #[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
+fn list_generators(state: State<'_, AppState>) -> Vec<GeneratorDefinition> {
+    state.registry.list()
+}
+
+#[tauri::command]
+fn generate(
+    state: State<'_, AppState>,
+    req: GenerateRequest,
+) -> Result<GenerateResponse, GeneratorError> {
+    state.registry.generate(&req.generator_id, req.options)
+}
+
+#[tauri::command]
+fn quick_generate(
+    _state: State<'_, AppState>,
+    _action: String,
+) -> Result<QuickGenerateResponse, GeneratorError> {
+    // Stub implementation
+    Ok(QuickGenerateResponse {
+        text: "Quick generated text".to_string(),
+    })
+}
+
+#[tauri::command]
+fn get_preferences() -> AppPreferences {
+    // Stub implementation
+    AppPreferences {
+        locale: "pt-BR".to_string(),
+    }
+}
+
+#[tauri::command]
+fn save_preferences(_prefs: AppPreferences) -> Result<(), String> {
+    // Stub implementation
+    Ok(())
+}
+
+#[tauri::command]
+fn rebuild_tray_quick_menu(_quick: Vec<String>) -> Result<(), String> {
+    // Stub implementation
+    Ok(())
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let registry = GeneratorRegistry::new();
+    // TODO: Register actual generators here later
+    // registry.register(MyGenerator::new());
+
     tauri::Builder::default()
+        .manage(AppState { registry })
         .setup(|app| {
             #[cfg(target_os = "macos")]
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
             Ok(())
         })
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet])
+        .invoke_handler(tauri::generate_handler![
+            list_generators,
+            generate,
+            quick_generate,
+            get_preferences,
+            save_preferences,
+            rebuild_tray_quick_menu
+        ])
         .setup(|app| {
             let quit_i = MenuItem::with_id(app, "quit", "Sair", true, None::<&str>)?;
             let show_i = MenuItem::with_id(app, "show", "Abrir DevGen", true, None::<&str>)?;
