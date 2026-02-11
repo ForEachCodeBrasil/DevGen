@@ -30,7 +30,7 @@ impl Generator for VehicleGenerator {
     }
 
     fn generate(&self, options: serde_json::Value) -> Result<GenerateResponse, GeneratorError> {
-        let mask = options
+        let _mask = options
             .get("mask")
             .and_then(|v| v.as_bool())
             .unwrap_or(true);

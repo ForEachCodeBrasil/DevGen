@@ -44,9 +44,7 @@ impl GeneratorRegistry {
         if let Some(gen) = map.get(id) {
             gen.generate(options)
         } else {
-            Err(GeneratorError {
-                message: format!("Generator not found: {}", id),
-            })
+            Err(GeneratorError::NotFound)
         }
     }
 }

@@ -1,7 +1,6 @@
 use crate::generators::{
     GenerateResponse, Generator, GeneratorCategory, GeneratorDefinition, GeneratorError,
 };
-use rand::Rng;
 use serde_json::json;
 
 pub struct LoremIpsumGenerator;
