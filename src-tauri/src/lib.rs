@@ -11,7 +11,7 @@ use store::Store;
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, TrayIconBuilder, TrayIconEvent},
-    Manager, State,
+    Emitter, Manager, State,
 };
 
 struct AppState {
@@ -34,12 +34,41 @@ fn generate(
 
 #[tauri::command]
 fn quick_generate(
-    _state: State<'_, AppState>,
-    _action: String,
+    state: State<'_, AppState>,
+    action: String,
 ) -> Result<QuickGenerateResponse, GeneratorError> {
-    // Stub implementation
+    let (generator_id, options) = match action.as_str() {
+        "quick.copy_cpf_masked" => ("cpf", serde_json::json!({ "mask": true })),
+        "quick.copy_cpf_unmasked" => ("cpf", serde_json::json!({ "mask": false })),
+        "quick.copy_cnpj_masked" => ("cnpj", serde_json::json!({ "mask": true })),
+        "quick.copy_cnpj_unmasked" => ("cnpj", serde_json::json!({ "mask": false })),
+        "quick.copy_rg_masked" => ("rg", serde_json::json!({ "mask": true })),
+        "quick.copy_rg_unmasked" => ("rg", serde_json::json!({ "mask": false })),
+        "quick.copy_person_full" => ("person", serde_json::json!({ "mask": true })),
+        "quick.copy_company_full" => ("company", serde_json::json!({ "mask": true })),
+        "quick.copy_vehicle_full" => ("vehicle", serde_json::json!({ "mask": true })),
+        "quick.copy_credit_card" => (
+            "credit_card",
+            serde_json::json!({ "mask": true, "brand": "visa" }),
+        ),
+        "quick.copy_password" => (
+            "password",
+            serde_json::json!({ "length": 16, "uppercase": true, "lowercase": true, "numbers": true, "symbols": true }),
+        ),
+        "quick.copy_uuid" => ("uuid", serde_json::json!({ "hyphens": true })),
+        "quick.copy_lorem_ipsum" => ("lorem_ipsum", serde_json::json!({ "paragraphs": 1 })),
+        _ => {
+            return Err(GeneratorError::InvalidOptions(format!(
+                "Unknown action: {}",
+                action
+            )))
+        }
+    };
+
+    let result = state.registry.generate(generator_id, options)?;
+
     Ok(QuickGenerateResponse {
-        text: "Quick generated text".to_string(),
+        text: result.text.unwrap_or_default(),
     })
 }
 
@@ -77,8 +106,24 @@ fn rebuild_tray_quick_menu(app: tauri::AppHandle, quick: Vec<String>) -> Result<
         if !quick.is_empty() {
             // For each quick action, add a menu item
             for action_id in quick {
-                // ideally we'd look up the name, here we just use the ID as label for MVP
-                let item = MenuItemBuilder::with_id(&action_id, &action_id)
+                let label = match action_id.as_str() {
+                    "quick.copy_cpf_masked" => "CPF (Formatado)",
+                    "quick.copy_cpf_unmasked" => "CPF (Números)",
+                    "quick.copy_cnpj_masked" => "CNPJ (Formatado)",
+                    "quick.copy_cnpj_unmasked" => "CNPJ (Números)",
+                    "quick.copy_rg_masked" => "RG (Formatado)",
+                    "quick.copy_person_full" => "Pessoa Completa",
+                    "quick.copy_company_full" => "Empresa Completa",
+                    "quick.copy_vehicle_full" => "Veículo Completo",
+                    "quick.copy_credit_card" => "Cartão de Crédito",
+                    "quick.copy_password" => "Senha Segura",
+                    "quick.copy_uuid" => "UUID v4",
+                    "quick.copy_lorem_ipsum" => "Lorem Ipsum",
+                    // Fallback to ID if unknown
+                    _ => action_id.as_str(),
+                };
+
+                let item = MenuItemBuilder::with_id(&action_id, label)
                     .build(&app)
                     .map_err(|e| e.to_string())?;
                 menu.append(&item).map_err(|e| e.to_string())?;
@@ -155,7 +200,13 @@ pub fn run() {
                             let _ = window.set_focus();
                         }
                     }
-                    _ => {}
+                    action_id => {
+                        // Assuming this is a quick action, emit it to the frontend
+                        // The frontend will handle the generation and copying to clipboard
+                        if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.emit("quick-action", action_id);
+                        }
+                    }
                 })
                 .on_tray_icon_event(|tray, event| match event {
                     TrayIconEvent::Click {

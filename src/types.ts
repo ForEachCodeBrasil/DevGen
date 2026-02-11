@@ -1,9 +1,9 @@
 export type GeneratorCategory =
-    | "Documents"
-    | "Person"
-    | "Company"
-    | "Vehicle"
-    | "Utils";
+    | "documents"
+    | "person"
+    | "company"
+    | "vehicle"
+    | "utilities";
 
 export interface GeneratorDefinition {
     id: string;
