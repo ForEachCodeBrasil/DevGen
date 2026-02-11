@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+pub mod impls;
 pub mod registry;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

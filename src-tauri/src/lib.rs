@@ -94,8 +94,10 @@ fn rebuild_tray_quick_menu(app: tauri::AppHandle, quick: Vec<String>) -> Result<
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let registry = GeneratorRegistry::new();
-    // TODO: Register actual generators here later
-    // registry.register(MyGenerator::new());
+
+    // Register generators
+    registry.register(crate::generators::impls::CpfGenerator);
+    registry.register(crate::generators::impls::CnpjGenerator);
 
     tauri::Builder::default()
         .setup(|app| {
