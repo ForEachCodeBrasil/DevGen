@@ -13,16 +13,20 @@
     "windows": [
       {
         "title": "DevGen",
-        "width": 800,
-        "height": 600,
+        "width": 380,
+        "height": 520,
         "visible": false,
         "titleBarStyle": "Overlay",
         "transparent": true,
         "windowEffects": {
-          "effects": ["underWindowBackground"],
-          "radius": 20,
+          "effects": [
+            "underWindowBackground"
+          ],
+          "radius": 12,
           "state": "active"
-        }
+        },
+        "minWidth": 340,
+        "minHeight": 400
       }
     ],
     "security": {

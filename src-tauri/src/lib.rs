@@ -9,7 +9,7 @@ use generators::{
 use std::sync::Arc;
 use store::Store;
 use tauri::{
-    menu::{Menu, MenuItem},
+    menu::{Menu, MenuItem, PredefinedMenuItem, Submenu},
     tray::{MouseButton, TrayIconBuilder, TrayIconEvent},
     Emitter, Manager, State,
 };
@@ -80,6 +80,11 @@ fn get_preferences(state: State<'_, AppState>) -> Result<AppPreferences, String>
 #[tauri::command]
 fn save_preferences(state: State<'_, AppState>, prefs: AppPreferences) -> Result<(), String> {
     state.store.update(|p| *p = prefs)
+}
+
+#[tauri::command]
+fn exit_app(app: tauri::AppHandle) {
+    app.exit(0);
 }
 
 #[tauri::command]
@@ -155,6 +160,7 @@ pub fn run() {
     registry.register(crate::generators::impls::CertidaoObitoGenerator);
     registry.register(crate::generators::impls::InscricaoEstadualGenerator);
     registry.register(crate::generators::impls::PersonGenerator);
+    registry.register(crate::generators::impls::CurriculumGenerator);
     registry.register(crate::generators::impls::NameGenerator);
     registry.register(crate::generators::impls::CompanyGenerator);
     registry.register(crate::generators::impls::BankAccountGenerator);
@@ -165,6 +171,8 @@ pub fn run() {
     registry.register(crate::generators::impls::PasswordGenerator);
     registry.register(crate::generators::impls::UuidGenerator);
     registry.register(crate::generators::impls::LoremIpsumGenerator);
+    registry.register(crate::generators::impls::LoremPixelGenerator);
+    registry.register(crate::generators::impls::QrCodeGenerator);
     registry.register(crate::generators::impls::MetaTagsGenerator);
 
     tauri::Builder::default()
@@ -184,17 +192,90 @@ pub fn run() {
             quick_generate,
             get_preferences,
             save_preferences,
+            exit_app,
             rebuild_tray_quick_menu
         ])
         .setup(|app| {
-            let quit_i = MenuItem::with_id(app, "quit", "Sair", true, None::<&str>)?;
             let show_i = MenuItem::with_id(app, "show", "Abrir DevGen", true, None::<&str>)?;
-            let menu = Menu::with_items(app, &[&show_i, &quit_i])?;
+            let sep1 = PredefinedMenuItem::separator(app)?;
+            let sep2 = PredefinedMenuItem::separator(app)?;
+            let quit_i = MenuItem::with_id(app, "quit", "Sair", true, None::<&str>)?;
+
+            // Quick actions for tray menu (CodexBar-style)
+            let cpf_masked = MenuItem::with_id(
+                app,
+                "quick.copy_cpf_masked",
+                "CPF (Formatado)",
+                true,
+                None::<&str>,
+            )?;
+            let cpf_unmasked = MenuItem::with_id(
+                app,
+                "quick.copy_cpf_unmasked",
+                "CPF (Números)",
+                true,
+                None::<&str>,
+            )?;
+            let cnpj_masked = MenuItem::with_id(
+                app,
+                "quick.copy_cnpj_masked",
+                "CNPJ (Formatado)",
+                true,
+                None::<&str>,
+            )?;
+            let cnpj_unmasked = MenuItem::with_id(
+                app,
+                "quick.copy_cnpj_unmasked",
+                "CNPJ (Números)",
+                true,
+                None::<&str>,
+            )?;
+            let uuid_item =
+                MenuItem::with_id(app, "quick.copy_uuid", "UUID v4", true, None::<&str>)?;
+            let password_item = MenuItem::with_id(
+                app,
+                "quick.copy_password",
+                "Senha Segura",
+                true,
+                None::<&str>,
+            )?;
+            let lorem_item = MenuItem::with_id(
+                app,
+                "quick.copy_lorem_ipsum",
+                "Lorem Ipsum",
+                true,
+                None::<&str>,
+            )?;
+            let credit_card_item = MenuItem::with_id(
+                app,
+                "quick.copy_credit_card",
+                "Cartão de Crédito",
+                true,
+                None::<&str>,
+            )?;
+
+            let generate_submenu = Submenu::with_items(
+                app,
+                "Gerar...",
+                true,
+                &[
+                    &cpf_masked,
+                    &cpf_unmasked,
+                    &cnpj_masked,
+                    &cnpj_unmasked,
+                    &uuid_item,
+                    &password_item,
+                    &credit_card_item,
+                    &lorem_item,
+                ],
+            )?;
+
+            let menu = Menu::with_items(app, &[&show_i, &sep1, &generate_submenu, &sep2, &quit_i])?;
 
             let _tray = TrayIconBuilder::with_id("tray")
                 .icon(app.default_window_icon().unwrap().clone())
                 .menu(&menu)
-                .show_menu_on_left_click(false)
+                .show_menu_on_left_click(true)
                 .on_menu_event(|app, event| match event.id.as_ref() {
                     "quit" => {
                         app.exit(0);

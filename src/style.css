@@ -1,20 +1,118 @@
 @import "tailwindcss";
 
+@theme {
+  /* macOS / SF Pro system font stack (CodexBar-style native typography) */
+  --font-sans: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "SF Mono", ui-monospace, "Cascadia Code", "Source Code Pro", Menlo,
+    Monaco, "Courier New", monospace;
+
+  /* Typography scale (SF Pro semantic sizes) */
+  --text-headline: 1.0625rem; /* 17px */
+  --text-subheadline: 0.9375rem; /* 15px */
+  --text-body: 1rem; /* 16px */
+  --text-footnote: 0.8125rem; /* 13px */
+  --text-caption: 0.75rem; /* 12px */
+  --text-caption2: 0.6875rem; /* 11px */
+
+  /* Spring-like easing (CodexBar response: 0.32, damping: 0.85) */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-spring-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 @layer base {
   :root {
+    /* Semantic colors (CodexBar-style, adapt to prefers-color-scheme) */
     --color-bg-app: rgba(20, 20, 20, 0.6);
     --color-sidebar: rgba(10, 10, 10, 0.4);
     --color-border: rgba(255, 255, 255, 0.1);
-    --color-text-primary: #e4e4e7; /* zinc-200 */
-    --color-text-secondary: #a1a1aa; /* zinc-400 */
-    --color-accent: #3b82f6; /* blue-500 */
-    --color-accent-hover: #2563eb; /* blue-600 */
+    --color-text-primary: #e4e4e7;
+    --color-text-secondary: #a1a1aa;
+    --color-text-tertiary: #71717a;
+    --color-accent: #3b82f6;
+    --color-accent-hover: #2563eb;
+    --color-selected-bg: rgba(59, 130, 246, 0.3);
+    --color-selected-text: #ffffff;
   }
 
-  body {
-    @apply bg-transparent text-white font-sans antialiased overflow-hidden selection:bg-blue-500/30 selection:text-white;
-    font-feature-settings: "tnum"; /* Tabular numerals for data/digits consistency */
-    /* macOS vibrancy requires transparent body */
+  /* Light mode (macOS semantic adaptation) */
+  @media (prefers-color-scheme: light) {
+    :root {
+      --color-bg-app: rgba(246, 246, 247, 0.85);
+      --color-sidebar: rgba(235, 235, 240, 0.9);
+      --color-border: rgba(0, 0, 0, 0.08);
+      --color-text-primary: #1d1d1f;
+      --color-text-secondary: #6e6e73;
+      --color-text-tertiary: #8e8e93;
+      --color-accent: #007aff;
+      --color-accent-hover: #0051d5;
+      --color-selected-bg: rgba(0, 122, 255, 0.15);
+      --color-selected-text: #1d1d1f;
+    }
+  }
+
+  html, body {
+    background: transparent !important;
+    @apply text-white font-sans antialiased overflow-hidden selection:bg-blue-500/30 selection:text-white;
+    font-feature-settings: "tnum" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  #app {
+    min-height: 100vh;
+    background: transparent;
+  }
+}
+
+/* Semantic typography utilities (CodexBar / SF Pro style) */
+@layer utilities {
+  .text-headline {
+    font-size: var(--text-headline);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .text-subheadline {
+    font-size: var(--text-subheadline);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
+  .text-footnote {
+    font-size: var(--text-footnote);
+    font-weight: 400;
+  }
+  .text-caption {
+    font-size: var(--text-caption);
+    font-weight: 400;
+  }
+  .text-caption2 {
+    font-size: var(--text-caption2);
+    font-weight: 500;
+  }
+
+  /* Semantic color utilities (use var() for light/dark adaptation) */
+  .text-primary {
+    color: var(--color-text-primary);
+  }
+  .text-secondary {
+    color: var(--color-text-secondary);
+  }
+  .text-tertiary {
+    color: var(--color-text-tertiary);
+  }
+  .bg-app {
+    background-color: var(--color-bg-app);
+  }
+  .border-semantic {
+    border-color: var(--color-border);
+  }
+
+  /* Spring-like transitions */
+  .transition-spring {
+    transition-timing-function: var(--ease-spring);
+  }
+  .transition-spring-out {
+    transition-timing-function: var(--ease-spring-out);
   }
 }
 
@@ -22,16 +120,55 @@
   .glass-panel {
     @apply bg-zinc-900/40 backdrop-blur-md border border-white/5;
   }
-  
+
   .glass-button {
-    @apply px-3 py-1.5 rounded-md transition-all duration-200 
+    @apply px-3 py-1.5 rounded-[6px] transition-all duration-200
            bg-white/5 hover:bg-white/10 active:bg-white/15
            border border-white/5 text-sm font-medium text-zinc-300;
+    transition-timing-function: var(--ease-spring-out);
   }
 
+  /* macOS-style native controls (CodexBar / NSSwitch / NSPopUpButton mimicry) */
   .glass-input {
-    @apply bg-zinc-950/50 border border-white/10 rounded-md px-3 py-2
-           text-sm text-zinc-200 placeholder-zinc-500
-           focus:outline-none focus:ring-1 focus:ring-blue-500/50 focus:border-blue-500/50;
+    @apply rounded-[6px] px-3 py-2 text-[13px] text-zinc-200 placeholder-zinc-500
+           bg-zinc-950/60 border border-white/10
+           focus:outline-none focus:ring-[1.5px] focus:ring-blue-500/40 focus:border-blue-500/50
+           hover:border-white/15 transition-all duration-150;
+  }
+
+  /* Native-style select (NSPopUpButton) */
+  .native-select {
+    @apply appearance-none rounded-[6px] py-2 pl-3 pr-8 text-[13px] text-zinc-200
+           bg-zinc-950/60 border border-white/10 cursor-pointer
+           focus:outline-none focus:ring-[1.5px] focus:ring-blue-500/40 focus:border-blue-500/50
+           hover:border-white/15 transition-all duration-150;
+  }
+
+  /* Native-style toggle (NSSwitch) - use with wrapper, track + thumb */
+  .native-toggle-track {
+    @apply relative inline-flex h-[22px] w-[38px] shrink-0 cursor-pointer rounded-full
+           border border-white/5 transition-colors duration-200 ease-out
+           focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:ring-offset-2 focus:ring-offset-zinc-900;
+  }
+  .native-toggle-track-on {
+    @apply bg-blue-500;
+  }
+  .native-toggle-track-off {
+    @apply bg-zinc-600/80;
+  }
+  .native-toggle-thumb {
+    @apply pointer-events-none inline-block h-[18px] w-[18px] transform rounded-full
+           bg-white shadow-sm ring-0 transition-transform duration-200 ease-out;
+  }
+
+  /* Capsular progress bar (CodexBar-style with smooth fill animation) */
+  .progress-bar-track {
+    @apply h-1.5 w-full rounded-full overflow-hidden bg-zinc-800/90;
+  }
+  .progress-bar-fill-green {
+    @apply h-full min-w-0 rounded-full transition-[width] duration-500 ease-out bg-gradient-to-r from-green-600 to-green-500/90;
+  }
+  .progress-bar-fill-blue {
+    @apply h-full min-w-0 rounded-full transition-[width] duration-500 ease-out bg-gradient-to-r from-blue-600 to-blue-500/80;
   }
 }

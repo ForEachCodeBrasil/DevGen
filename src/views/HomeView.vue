@@ -1,128 +1,195 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { useGeneratorsStore } from '../stores/generators';
-import { Loader2, ArrowRight } from 'lucide-vue-next';
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { invoke } from '@tauri-apps/api/core'
+import {
+  Search,
+  Settings,
+  ChevronRight,
+  Loader2,
+  FileText,
+  User,
+  Building2,
+  Car,
+  Wrench,
+  Grid2X2
+} from 'lucide-vue-next'
 
-const router = useRouter();
-const store = useGeneratorsStore();
-const isLoading = ref(false);
-
-const popularGenerators = [
-  'cpf', 'cnpj', 'uuid', 'credit_card', 'password'
-];
-
-function selectGenerator(id: string) {
-  router.push({ name: 'generator', params: { id } });
+interface GeneratorDefinition {
+  id: string
+  name: string
+  category: string
+  description: string
 }
 
-onMounted(async () => {
-  if (store.generators.length === 0) {
-    isLoading.value = true;
-    await store.fetchGenerators();
-    isLoading.value = false;
+const router = useRouter()
+const searchQuery = ref('')
+const generators = ref<GeneratorDefinition[]>([])
+const selectedTab = ref<string>('All')
+const isLoading = ref(true)
+
+const getCategoryIcon = (category: string) => {
+  switch (category.toLowerCase()) {
+    case 'documents': return FileText
+    case 'person': return User
+    case 'company': return Building2
+    case 'vehicle': return Car
+    case 'utilities': return Wrench
+    default: return Grid2X2
   }
-});
+}
+
+const categories = computed(() => {
+  const cats = new Set(generators.value.map(g => g.category))
+  return ['All', ...Array.from(cats).sort()]
+})
+
+const filteredGenerators = computed(() => {
+  return generators.value.filter(g => {
+    const matchesSearch =
+      g.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+      g.description.toLowerCase().includes(searchQuery.value.toLowerCase())
+    const matchesTab =
+      selectedTab.value === 'All' || g.category === selectedTab.value
+    return matchesSearch && matchesTab
+  })
+})
+
+async function loadGenerators() {
+  try {
+    generators.value = await invoke('list_generators')
+  } catch (e) {
+    console.error('Failed to list generators', e)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+function selectGenerator(id: string) {
+  router.push({ name: 'generator', params: { id } })
+}
+
+async function quit() {
+  await invoke('exit_app')
+}
+
+onMounted(() => loadGenerators())
 </script>
 
 <template>
-  <div class="flex flex-col h-full overflow-hidden animate-in fade-in zoom-in-95 duration-300">
-
-    <!-- Ultra-Compact Hero (Header Style) -->
-    <div class="px-6 pt-10 pb-4 flex items-center justify-between border-b border-white/5 bg-white/[0.02]">
-      <div class="flex items-center gap-3">
-        <!-- Logo Icon -->
+  <div class="flex flex-col h-screen overflow-hidden panel-bg">
+    <!-- Header with title bar drag -->
+    <div
+      class="flex items-center justify-between px-4 pt-12 pb-2 border-b border-white/5 flex-shrink-0"
+      data-tauri-drag-region
+    >
+      <div class="flex items-center gap-2">
         <div
-          class="flex items-center justify-center w-8 h-8 bg-blue-500/10 rounded-lg border border-blue-500/20 shadow-sm">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-blue-400">
-            <path d="m18 16 4-4-4-4" />
-            <path d="m6 8-4 4 4 4" />
-            <path d="m14.5 4-5 16" />
+          class="w-6 h-6 rounded-md bg-blue-500/20 border border-blue-500/30 flex items-center justify-center"
+        >
+          <svg class="w-3 h-3 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="m18 16 4-4-4-4" /><path d="m6 8-4 4 4 4" /><path d="m14.5 4-5 16" />
           </svg>
         </div>
-        <div class="flex flex-col">
-          <h1 class="text-sm font-bold text-zinc-100 tracking-tight leading-none">DevGen</h1>
-          <span class="text-[10px] text-zinc-500 font-medium uppercase tracking-wider">Premium Utilities</span>
-        </div>
+        <span class="text-[13px] font-semibold text-zinc-100">DevGen</span>
       </div>
-      <!-- Status Badge mimicking CodexBar's "Pro" or status -->
-      <div
-        class="px-2 py-0.5 rounded-full bg-green-500/10 border border-green-500/20 text-[9px] font-bold text-green-400 uppercase tracking-wide">
-        v0.1.0-beta
+      <span
+        class="text-[9px] px-1.5 py-0.5 rounded bg-green-500/15 text-green-400 font-medium"
+      >
+        Offline
+      </span>
+    </div>
+
+    <!-- Tabs (CodexBar-style) -->
+    <div
+      class="flex gap-0.5 px-3 py-2 border-b border-white/5 overflow-x-auto no-scrollbar flex-shrink-0"
+      data-tauri-drag-region
+    >
+      <button
+        v-for="cat in categories"
+        :key="cat"
+        @click="selectedTab = cat"
+        :class="[
+          'px-2.5 py-1 rounded-[5px] text-[11px] font-medium whitespace-nowrap transition-all duration-150',
+          selectedTab === cat
+            ? 'bg-blue-500/30 text-blue-200 border border-blue-500/40'
+            : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/5 border border-transparent'
+        ]"
+      >
+        {{ cat }}
+      </button>
+    </div>
+
+    <!-- Search -->
+    <div class="px-3 py-2 flex-shrink-0">
+      <div class="relative">
+        <Search class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500" />
+        <input
+          v-model="searchQuery"
+          type="text"
+          placeholder="Search generators..."
+          class="w-full bg-white/5 border border-white/5 rounded-[6px] pl-8 pr-3 py-1.5 text-[11px] text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-white/10 transition-colors"
+        />
       </div>
     </div>
 
-    <!-- Scrollable Content Area -->
-    <div class="flex-1 overflow-y-auto p-4 space-y-5">
-
-      <!-- Quick Actions Section -->
-      <div v-if="isLoading" class="flex justify-center py-4">
-        <Loader2 class="w-5 h-5 text-zinc-600 animate-spin" />
+    <!-- Generator list -->
+    <div class="flex-1 overflow-y-auto px-3 pb-2 min-h-0">
+      <div v-if="isLoading" class="flex justify-center py-8">
+        <Loader2 class="w-5 h-5 text-zinc-500 animate-spin" />
       </div>
-
-      <div v-else>
-        <div class="flex items-center justify-between mb-2 px-1">
-          <h2 class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Quick Access</h2>
-        </div>
-
-        <div class="grid grid-cols-2 gap-2">
-          <button v-for="genId in popularGenerators" :key="genId" @click="selectGenerator(genId)"
-            class="group flex items-center gap-2.5 px-3 py-2 bg-zinc-900/40 hover:bg-white/5 border border-white/5 hover:border-white/10 rounded-md transition-all">
-            <!-- Tiny Icon Placeholder -->
-            <div class="w-1.5 h-1.5 rounded-full bg-zinc-700 group-hover:bg-blue-400 transition-colors"></div>
-
-            <span class="text-xs font-medium text-zinc-400 group-hover:text-zinc-200 capitalize truncate">
-              {{ genId.replace(/_/g, ' ') }}
-            </span>
-
-            <!-- Hidden arrow that appears -->
-            <ArrowRight
-              class="w-3 h-3 text-zinc-600 ml-auto opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all" />
-          </button>
-        </div>
+      <div v-else class="space-y-0.5">
+        <button
+          v-for="gen in filteredGenerators"
+          :key="gen.id"
+          @click="selectGenerator(gen.id)"
+          class="w-full flex items-center gap-2 px-2.5 py-2 rounded-[6px] text-left transition-all duration-150 group hover:bg-white/5"
+        >
+          <component
+            :is="getCategoryIcon(gen.category)"
+            class="w-3.5 h-3.5 text-zinc-500 group-hover:text-zinc-400 shrink-0"
+          />
+          <span class="text-[12px] text-zinc-300 group-hover:text-zinc-100 flex-1 truncate">
+            {{ gen.name }}
+          </span>
+          <ChevronRight class="w-3.5 h-3.5 text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+        </button>
       </div>
-
-      <!-- Discovery / Info Section (Simulating CodexBar's usage stats look) -->
-      <div>
-        <div class="flex items-center justify-between mb-2 px-1">
-          <h2 class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">System Status</h2>
-        </div>
-
-        <div class="bg-zinc-900/30 border border-white/5 rounded-lg p-3 space-y-3">
-          <!-- Fake Progress Bars to match aesthetic -->
-          <div class="space-y-1">
-            <div class="flex justify-between text-[10px] text-zinc-400">
-              <span>Offline Mode</span>
-              <span class="text-green-400">Active</span>
-            </div>
-            <div class="h-1 w-full bg-zinc-800 rounded-full overflow-hidden">
-              <div class="h-full bg-green-500/80 w-full rounded-full"></div>
-            </div>
-            <div class="flex justify-between text-[9px] text-zinc-600">
-              <span>No external calls</span>
-              <span>Secure</span>
-            </div>
-          </div>
-
-          <div class="space-y-1 pt-1">
-            <div class="flex justify-between text-[10px] text-zinc-400">
-              <span>Performance</span>
-              <span class="text-zinc-300">Optimal</span>
-            </div>
-            <div class="h-1 w-full bg-zinc-800 rounded-full overflow-hidden">
-              <div class="h-full bg-blue-500/60 w-[94%] rounded-full"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
     </div>
 
-    <!-- Footer Hint -->
-    <div class="p-2 text-center border-t border-white/5 bg-black/20">
-      <span class="text-[9px] text-zinc-600 font-medium">PRESS <kbd
-          class="font-sans bg-white/10 px-1 rounded text-zinc-500">⌘K</kbd> TO SEARCH</span>
+    <!-- Footer menu (CodexBar-style) -->
+    <div
+      class="border-t border-white/5 px-3 py-2 space-y-0.5 flex-shrink-0"
+      data-tauri-drag-region
+    >
+      <button
+        @click="router.push('/settings')"
+        class="w-full flex items-center gap-2 px-2.5 py-2 rounded-[6px] text-left text-[12px] text-zinc-400 hover:bg-white/5 hover:text-zinc-200 transition-all duration-150"
+      >
+        <Settings class="w-3.5 h-3.5" />
+        Settings...
+      </button>
+      <button
+        @click="quit"
+        class="w-full flex items-center gap-2 px-2.5 py-2 rounded-[6px] text-left text-[12px] text-zinc-400 hover:bg-white/5 hover:text-zinc-200 transition-all duration-150"
+      >
+        Quit
+      </button>
     </div>
   </div>
 </template>
+
+<style scoped>
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.panel-bg {
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+}
+</style>

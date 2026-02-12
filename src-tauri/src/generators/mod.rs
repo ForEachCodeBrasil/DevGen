@@ -34,6 +34,8 @@ pub struct GenerateRequest {
 pub struct GenerateResponse {
     pub text: Option<String>,
     pub metadata: Option<serde_json::Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub base64_artifact: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

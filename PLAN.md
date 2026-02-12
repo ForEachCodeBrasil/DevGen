@@ -149,11 +149,11 @@ Objetivo final: app menubar macOS-first em Tauri + Rust + Vue + Tailwind, 100% o
 - [x] 7.2 Implementar gerador de senha.
 - [x] 7.3 Implementar gerador de números aleatórios. (Implemented UUID instead)
 - [x] 7.4 Implementar gerador de texto lorem ipsum.
-- [ ] 7.5 Implementar gerador de imagem lorem pixel (preview + download).
-- [ ] 7.6 Implementar gerador de QRCode (preview + download).
+- [x] 7.5 Implementar gerador de imagem lorem pixel (preview + download).
+- [x] 7.6 Implementar gerador de QRCode (preview + download).
 - [x] 7.7 Implementar gerador de meta tags (output textual/HTML).
-- [ ] 7.8 Implementar gerador de currículo.
-- [ ] 7.9 Garantir paridade de opções por utilitário com o ForDevs.
+- [x] 7.8 Implementar gerador de currículo.
+- [x] 7.9 Garantir paridade de opções por utilitário com o ForDevs.
 
 ### Phase 8 — Quick Generate híbrido
 

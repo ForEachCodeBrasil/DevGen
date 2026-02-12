@@ -21,6 +21,7 @@ export interface GenerateRequest {
 export interface GenerateResponse {
     text?: string;
     metadata?: Record<string, any>;
+    base64_artifact?: string;
 }
 
 export interface GeneratorError {
