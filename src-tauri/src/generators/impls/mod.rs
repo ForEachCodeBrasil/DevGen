@@ -15,6 +15,7 @@ pub mod rg;
 pub mod titulo_eleitor;
 pub mod uuid;
 pub mod vehicle;
+pub mod vehicle_plate;
 
 pub use certidoes::{
     CertidaoCasamentoGenerator, CertidaoNascimentoGenerator, CertidaoObitoGenerator,
@@ -35,3 +36,4 @@ pub use rg::RgGenerator;
 pub use titulo_eleitor::TituloEleitorGenerator;
 pub use uuid::UuidGenerator;
 pub use vehicle::VehicleGenerator;
+pub use vehicle_plate::VehiclePlateGenerator;
