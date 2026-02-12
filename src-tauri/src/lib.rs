@@ -155,6 +155,7 @@ pub fn run() {
     registry.register(crate::generators::impls::InscricaoEstadualGenerator);
     registry.register(crate::generators::impls::PersonGenerator);
     registry.register(crate::generators::impls::CompanyGenerator);
+    registry.register(crate::generators::impls::BankAccountGenerator);
     registry.register(crate::generators::impls::VehicleGenerator);
     registry.register(crate::generators::impls::VehiclePlateGenerator);
     registry.register(crate::generators::impls::CreditCardGenerator);

@@ -1,3 +1,4 @@
+pub mod bank_account;
 pub mod certidoes;
 pub mod cnh;
 pub mod cnpj;
@@ -17,6 +18,7 @@ pub mod uuid;
 pub mod vehicle;
 pub mod vehicle_plate;
 
+pub use bank_account::BankAccountGenerator;
 pub use certidoes::{
     CertidaoCasamentoGenerator, CertidaoNascimentoGenerator, CertidaoObitoGenerator,
 };
