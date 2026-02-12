@@ -138,7 +138,7 @@ Objetivo final: app menubar macOS-first em Tauri + Rust + Vue + Tailwind, 100% o
 - [x] 6.5 Implementar gerador de veículos.
 - [x] 6.6 Implementar gerador de placa de automóveis.
 - [x] 6.7 Implementar gerador de conta bancária.
-- [ ] 6.8 Implementar gerador de CEP.
+- [x] 6.8 Implementar gerador de CEP.
 - [ ] 6.9 Implementar gerador de nomes.
 - [ ] 6.10 Implementar gerador de nicks.
 - [ ] 6.11 Validar coerência (documento x pessoa x endereço quando aplicável).
