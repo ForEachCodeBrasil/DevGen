@@ -29,7 +29,20 @@ fn generate(
     state: State<'_, AppState>,
     req: GenerateRequest,
 ) -> Result<GenerateResponse, GeneratorError> {
-    state.registry.generate(&req.generator_id, req.options)
+    let result = state.registry.generate(&req.generator_id, req.options)?;
+
+    // Record history
+    if let Some(text) = &result.text {
+        let entry = format!("{}: {}", req.generator_id, text);
+        let _ = state.store.update(|p| {
+            p.history.insert(0, entry);
+            if p.history.len() > 30 {
+                p.history.truncate(30);
+            }
+        });
+    }
+
+    Ok(result)
 }
 
 #[tauri::command]
@@ -66,6 +79,17 @@ fn quick_generate(
     };
 
     let result = state.registry.generate(generator_id, options)?;
+
+    // Record history
+    if let Some(text) = &result.text {
+        let entry = format!("{}: {}", generator_id, text);
+        let _ = state.store.update(|p| {
+            p.history.insert(0, entry);
+            if p.history.len() > 30 {
+                p.history.truncate(30);
+            }
+        });
+    }
 
     Ok(QuickGenerateResponse {
         text: result.text.unwrap_or_default(),

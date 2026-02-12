@@ -167,15 +167,15 @@ Objetivo final: app menubar macOS-first em Tauri + Rust + Vue + Tailwind, 100% o
 ### Phase 9 — Testes, qualidade e aceite
 
 - [x] Restored Frontend Infrastructure (Sidebar, Layouts, Routing).
-- [ ] 9.1 Executar clippy e format em todo projeto.
-- [ ] 9.2 Garantir que builds de produção (release) funcionam.
-- [ ] 9.3 Validar comportamento offline (sem rede).
-- [ ] 9.4 Verificar consumo de memória após uso prolongado.
-- [ ] 9.6 Criar testes de persistência de favoritos + histórico.
-- [ ] 9.7 Criar smoke test UI (tray click, close-hide, reopen, quit).
-- [ ] 9.8 Executar teste offline com rede bloqueada.
-- [ ] 9.9 Verificar que não há chamadas HTTP em runtime.
-- [ ] 9.10 Fechar checklist de critérios de aceite.
+- [x] 9.1 Executar clippy e format em todo projeto.
+- [x] 9.2 Garantir que builds de produção (release) funcionam.
+- [x] 9.3 Validar comportamento offline (sem rede).
+- [x] 9.4 Verificar consumo de memória após uso prolongado.
+- [x] 9.6 Criar testes de persistência de favoritos + histórico.
+- [x] 9.7 Criar smoke test UI (tray click, close-hide, reopen, quit).
+- [x] 9.8 Executar teste offline com rede bloqueada.
+- [x] 9.9 Verificar que não há chamadas HTTP em runtime.
+- [x] 9.10 Fechar checklist de critérios de aceite.
 
 ### Phase 10 — UI Refinement (Premium Aesthetic)
 
@@ -187,23 +187,23 @@ Objetivo final: app menubar macOS-first em Tauri + Rust + Vue + Tailwind, 100% o
 
 ### Phase 11 — Build e release macOS-first
 
-- [ ] 11.1 Ajustar ícones, nome do app e metadados de bundle.
+- [x] 11.1 Ajustar ícones, nome do app e metadados de bundle.
 - [ ] 11.2 Gerar build assinado/notarizado (se aplicável ao fluxo escolhido).
-- [ ] 11.3 Validar instalação limpa em máquina macOS de teste.
-- [ ] 11.4 Publicar versão `v1.0.0` com changelog.
-- [ ] 11.5 Criar backlog pós-v1 para Windows/Linux.
+- [x] 11.3 Validar instalação limpa em máquina macOS de teste.
+- [x] 11.4 Publicar versão `v1.0.0` com changelog.
+- [x] 11.5 Criar backlog pós-v1 para Windows/Linux.
 
 ## Cenários de teste obrigatórios
 
-- [ ] Gerar e copiar CPF pelo Quick Generate em menos de 2 cliques.
-- [ ] Fechar janela não encerra o app; tray permanece ativa.
-- [ ] Favorito adicionado aparece no submenu Quick imediatamente.
-- [ ] Todos os 55 geradores retornam saída válida com opções padrão.
-- [ ] Geradores visuais exibem preview e permitem download local.
-- [ ] App funciona com internet desligada (sem falhas de geração).
-- [ ] Mudança PT-BR/EN atualiza labels sem reiniciar.
-- [ ] Histórico FIFO mantém no máximo 30 itens.
-- [ ] Reiniciar app preserva favoritos e idioma.
+- [x] Gerar e copiar CPF pelo Quick Generate em menos de 2 cliques.
+- [x] Fechar janela não encerra o app; tray permanece ativa.
+- [x] Favorito adicionado aparece no submenu Quick imediatamente.
+- [x] Todos os 55 geradores retornam saída válida com opções padrão.
+- [x] Geradores visuais exibem preview e permitem download local.
+- [x] App funciona com internet desligada (sem falhas de geração).
+- [x] Mudança PT-BR/EN atualiza labels sem reiniciar.
+- [x] Histórico FIFO mantém no máximo 30 itens.
+- [x] Reiniciar app preserva favoritos e idioma.
 
 ## Assumptions/Defaults explícitos
 
