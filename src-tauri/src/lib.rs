@@ -208,29 +208,23 @@ pub fn run() {
                         }
                     }
                 })
-                .on_tray_icon_event(|tray, event| match event {
-                    TrayIconEvent::Click {
+                .on_tray_icon_event(|tray, event| if let TrayIconEvent::Click {
                         button: MouseButton::Left,
                         ..
-                    } => {
-                        let app = tray.app_handle();
-                        if let Some(window) = app.get_webview_window("main") {
-                            let _ = window.show();
-                            let _ = window.set_focus();
-                        }
+                    } = event {
+                    let app = tray.app_handle();
+                    if let Some(window) = app.get_webview_window("main") {
+                        let _ = window.show();
+                        let _ = window.set_focus();
                     }
-                    _ => {}
                 })
                 .build(app)?;
 
             Ok(())
         })
-        .on_window_event(|window, event| match event {
-            tauri::WindowEvent::CloseRequested { api, .. } => {
-                window.hide().unwrap();
-                api.prevent_close();
-            }
-            _ => {}
+        .on_window_event(|window, event| if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+            window.hide().unwrap();
+            api.prevent_close();
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

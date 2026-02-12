@@ -3,6 +3,7 @@ use crate::generators::{
     impls::renavam::RenavamGenerator, GenerateResponse, Generator, GeneratorCategory,
     GeneratorDefinition, GeneratorError,
 };
+use chrono::Datelike;
 use rand::Rng;
 use serde_json::json;
 
@@ -43,8 +44,8 @@ impl Generator for VehicleGenerator {
         let brand = &brand_entry.brand;
         let model = &brand_entry.models[rng.gen_range(0..brand_entry.models.len())];
 
-        // 2. Year (10 years back max)
-        let current_year = 2025; // TODO: Get dynamic year?
+        // 2. Year (15 years back max)
+        let current_year = chrono::Local::now().year();
         let year = rng.gen_range(current_year - 15..=current_year);
 
         // 3. Color

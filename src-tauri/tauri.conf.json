@@ -16,16 +16,19 @@
         "width": 800,
         "height": 600,
         "visible": false,
-        "hiddenTitle": true,
         "titleBarStyle": "Overlay",
         "transparent": true,
-        "vibrancy": "under-window",
-        "vibrancyRadius": 20
+        "windowEffects": {
+          "effects": ["underWindowBackground"],
+          "radius": 20,
+          "state": "active"
+        }
       }
     ],
     "security": {
       "csp": null
-    }
+    },
+    "macOSPrivateApi": true
   },
   "bundle": {
     "active": true,

@@ -59,6 +59,16 @@ impl Generator for PersonGenerator {
         // 5. Location
         let cities = Datasets::get_cities();
         let city_entry = &cities[rng.gen_range(0..cities.len())];
+        let address = Datasets::random_address();
+        let cep = Datasets::random_cep();
+
+        // 6. Phone
+        let phone = format!(
+            "({:02}) 9{:04}-{:04}",
+            rng.gen_range(11..99),
+            rng.gen_range(0..9999),
+            rng.gen_range(0..9999)
+        );
 
         // Construct structured result
         let cpf_text = cpf_res.text.unwrap_or_default();
@@ -70,14 +80,17 @@ impl Generator for PersonGenerator {
             "CPF": cpf_text,
             "RG": rg_text,
             "E-mail": email,
+            "Telefone": phone,
+            "CEP": cep,
+            "Endereço": address,
             "Cidade": city_entry.city,
             "Estado": city_entry.state,
         });
 
         // Format as text block for current UI
         let text = format!(
-            "Nome: {}\nIdade: {}\nCPF: {}\nRG: {}\nE-mail: {}\nCidade: {} - {}",
-            name, age, cpf_text, rg_text, email, city_entry.city, city_entry.state
+            "Nome: {}\nIdade: {}\nCPF: {}\nRG: {}\nE-mail: {}\nTelefone: {}\n\nCEP: {}\nEndereço: {}\nCidade: {} - {}",
+            name, age, cpf_text, rg_text, email, phone, cep, address, city_entry.city, city_entry.state
         );
 
         Ok(GenerateResponse {

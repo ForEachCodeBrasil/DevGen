@@ -1,4 +1,5 @@
 use rand::seq::SliceRandom;
+use rand::Rng;
 use serde::Deserialize;
 
 #[derive(Deserialize)]
@@ -11,6 +12,13 @@ pub struct CityEntry {
 pub struct VehicleBrand {
     pub brand: String,
     pub models: Vec<String>,
+}
+
+#[derive(Deserialize)]
+pub struct AddressData {
+    pub street_types: Vec<String>,
+    pub street_names: Vec<String>,
+    pub neighborhoods: Vec<String>,
 }
 
 pub struct Datasets;
@@ -36,6 +44,10 @@ impl Datasets {
         serde_json::from_str(include_str!("data/vehicles.json")).unwrap()
     }
 
+    pub fn get_addresses() -> AddressData {
+        serde_json::from_str(include_str!("data/addresses.json")).unwrap()
+    }
+
     pub fn random_name() -> String {
         let names = Self::get_names();
         let surnames = Self::get_surnames();
@@ -46,5 +58,29 @@ impl Datasets {
         let last2 = surnames.choose(&mut rng).unwrap();
 
         format!("{} {} {}", first, last1, last2)
+    }
+
+    pub fn random_address() -> String {
+        let addr = Self::get_addresses();
+        let mut rng = rand::thread_rng();
+
+        let street_type = addr.street_types.choose(&mut rng).unwrap();
+        let street_name = addr.street_names.choose(&mut rng).unwrap();
+        let neighborhood = addr.neighborhoods.choose(&mut rng).unwrap();
+        let number = rng.gen_range(1..2000);
+
+        format!(
+            "{}, {} - {}, {}",
+            street_type, street_name, number, neighborhood
+        )
+    }
+
+    pub fn random_cep() -> String {
+        let mut rng = rand::thread_rng();
+        format!(
+            "{:05}-{:03}",
+            rng.gen_range(1000..99999),
+            rng.gen_range(0..999)
+        )
     }
 }

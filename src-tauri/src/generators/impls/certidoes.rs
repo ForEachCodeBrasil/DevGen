@@ -43,11 +43,8 @@ fn generate_certidao(cert_type: u8, mask: bool) -> String {
     digits.extend(utils::generate_random_digits(3));
 
     // DV calculation:
-    // For now using random digits to guarantee valid length/format.
-    // Precise Algo TODO.
-
-    let dv1 = rng.gen_range(0..10) as u8;
-    let dv2 = rng.gen_range(0..10) as u8;
+    // Modulo 11 algorithm.
+    let (dv1, dv2) = calculate_check_digits(&digits);
 
     digits.push(dv1);
     digits.push(dv2);
@@ -145,4 +142,29 @@ impl Generator for CertidaoObitoGenerator {
             metadata: None,
         })
     }
+}
+
+fn calculate_check_digits(digits: &[u8]) -> (u8, u8) {
+    let mut sum1: u32 = 0;
+    for (i, &d) in digits.iter().enumerate() {
+        let weight = 32 - i as u32;
+        sum1 += d as u32 * weight;
+    }
+
+    let rem1 = (sum1 * 10) % 11;
+    let dv1 = if rem1 == 10 { 1 } else { rem1 as u8 };
+
+    let mut sum2: u32 = 0;
+    let mut digits2 = digits.to_vec();
+    digits2.push(dv1);
+
+    for (i, &d) in digits2.iter().enumerate() {
+        let weight = 33 - i as u32;
+        sum2 += d as u32 * weight;
+    }
+
+    let rem2 = (sum2 * 10) % 11;
+    let dv2 = if rem2 == 10 { 1 } else { rem2 as u8 };
+
+    (dv1, dv2)
 }

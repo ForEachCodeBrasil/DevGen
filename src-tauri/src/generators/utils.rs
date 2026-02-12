@@ -1,5 +1,6 @@
 use rand::Rng;
 
+#[allow(dead_code)]
 pub fn mod11(digits: &[u8], weights: &[u32]) -> u8 {
     let mut sum = 0;
     for (i, &digit) in digits.iter().enumerate() {

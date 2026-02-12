@@ -12,7 +12,8 @@
   }
 
   body {
-    @apply bg-transparent text-white font-sans antialiased overflow-hidden;
+    @apply bg-transparent text-white font-sans antialiased overflow-hidden selection:bg-blue-500/30 selection:text-white;
+    font-feature-settings: "tnum"; /* Tabular numerals for data/digits consistency */
     /* macOS vibrancy requires transparent body */
   }
 }

@@ -25,7 +25,8 @@ import Sidebar from '../components/Sidebar.vue';
   flex: 1;
   overflow-y: auto;
   padding: 1.5rem;
-  background-color: transparent;
+  background-color: rgba(20, 20, 20, 0.2);
+  /* Subtle tint for readability */
   /* Let the global app bg or vibrancy show through */
 }
 

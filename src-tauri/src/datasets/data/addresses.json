@@ -1,0 +1,23 @@
+{
+  "street_types": ["Rua", "Avenida", "Alameda", "Travessa", "Praça", "Rodovia"],
+  "street_names": [
+    "das Flores", "da Paz", "Santa Luzia", "Sete de Setembro", "Getúlio Vargas",
+    "Brasil", "Amazonas", "Paraná", "São Paulo", "Rio de Janeiro",
+    "dos Pinheiros", "da Saudade", "Santos Dumont", "Rui Barbosa", "Castro Alves",
+    "Duque de Caxias", "Bento Gonçalves", "Carlos Gomes", "Oswaldo Cruz", "Anita Garibaldi",
+    "Tiradentes", "Machado de Assis", "Cecília Meireles", "Vinícius de Moraes", "Clarice Lispector",
+    "Jorge Amado", "Érico Veríssimo", "Graciliano Ramos", "Guimarães Rosa", "Manuel Bandeira",
+    "dos Jacarandás", "das Palmeiras", "das Acácias", "das Orquídeas", "das Hortênsias",
+    "do Sol", "da Lua", "das Estrelas", "do Horizonte", "da Esperança",
+    "Boa Vista", "Bela Vista", "Santa Maria", "Santo Antônio", "São Francisco",
+    "São Jorge", "Nossa Senhora", "da Glória", "da Liberdade", "da Vitória"
+  ],
+  "neighborhoods": [
+    "Centro", "Jardim América", "Vila Nova", "Bela Vista", "Santa Cruz",
+    "Santo Antônio", "São Francisco", "Jardim Alvorada", "Parque das Nações", "Boa Viagem",
+    "Ipanema", "Leblon", "Copacabana", "Botafogo", "Tijuca",
+    "Pinheiros", "Moema", "Itaim Bibi", "Morumbi", "Santana",
+    "Savassi", "Lourdes", "Pampulha", "Graças", "Setor Bueno",
+    "Meireles", "Aldeota", "Batidinha", "Moinhos de Vento", "Petrópolis"
+  ]
+}

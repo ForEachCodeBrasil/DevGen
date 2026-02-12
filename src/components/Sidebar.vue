@@ -10,8 +10,7 @@ import {
   Building2,
   Car,
   Wrench,
-  Grid2X2,
-  ChevronRight
+  Grid2X2
 } from 'lucide-vue-next';
 
 interface GeneratorDefinition {
@@ -71,82 +70,71 @@ onMounted(() => {
 </script>
 
 <template>
-  <aside class="w-64 flex flex-col h-full border-r border-white/5 bg-zinc-950/30 backdrop-blur-sm"
-    data-tauri-drag-region>
+  <aside class="w-64 flex flex-col h-full border-r border-white/5 bg-black/20 backdrop-blur-xl" data-tauri-drag-region>
 
-    <!-- Header / Drag Region -->
-    <div class="px-4 pt-6 pb-4 flex items-center justify-between pointer-events-none" data-tauri-drag-region>
-      <div class="flex items-center gap-2">
-        <div class="w-3 h-3 rounded-full bg-red-500/80"></div>
-        <div class="w-3 h-3 rounded-full bg-yellow-500/80"></div>
-        <div class="w-3 h-3 rounded-full bg-green-500/80"></div>
-      </div>
-    </div>
-
-    <!-- Search -->
-    <div class="px-3 mb-4">
+    <!-- Header / Native Traffic Lights Spacer + Search -->
+    <div class="pt-10 px-3 pb-2 space-y-3" data-tauri-drag-region>
+      <!-- Native-style Search Input (Darker, recessed) -->
       <div class="relative group">
         <Search
-          class="absolute left-2.5 top-2 w-4 h-4 text-zinc-500 group-focus-within:text-blue-400 transition-colors" />
-        <input v-model="searchQuery" type="text" placeholder="Search..."
-          class="w-full bg-black/20 border border-white/5 rounded-lg pl-9 pr-3 py-1.5 text-sm text-zinc-300 placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all" />
+          class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500 group-focus-within:text-zinc-300 transition-colors" />
+        <input v-model="searchQuery" type="text" placeholder="Search" class="w-full bg-black/40 border border-white/5 rounded-[6px] pl-8 pr-2 py-1 text-[11px] text-zinc-300 placeholder-zinc-600 
+                 shadow-inner focus:outline-none focus:bg-black/60 focus:border-white/10 transition-all font-medium" />
+      </div>
+
+      <!-- Categories as Segmented Control (CodexBar Style) -->
+      <!-- We need a scrolling container because 55 gens have many categories, but we mimic the LOOK of tabs -->
+      <div class="flex gap-0.5 overflow-x-auto no-scrollbar p-0.5 bg-black/20 rounded-lg border border-white/5">
+        <button @click="selectedCategory = null" :class="[
+          'flex-1 px-3 py-1 rounded-[5px] text-[10px] font-medium transition-all text-center whitespace-nowrap',
+          selectedCategory === null
+            ? 'bg-zinc-700/80 text-white shadow-sm'
+            : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/5'
+        ]">
+          All
+        </button>
+        <button v-for="cat in categories" :key="cat" @click="selectedCategory = cat" :class="[
+          'flex-1 px-3 py-1 rounded-[5px] text-[10px] font-medium transition-all text-center whitespace-nowrap',
+          selectedCategory === cat
+            ? 'bg-zinc-700/80 text-white shadow-sm'
+            : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/5'
+        ]">
+          {{ cat }}
+        </button>
       </div>
     </div>
 
-    <!-- Category Tabs -->
-    <div class="px-3 mb-2 flex gap-1 overflow-x-auto no-scrollbar pb-2">
-      <button @click="selectedCategory = null" :class="[
-        'px-2.5 py-1 rounded text-xs font-medium whitespace-nowrap transition-colors',
-        selectedCategory === null
-          ? 'bg-blue-600/20 text-blue-400 border border-blue-500/20'
-          : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/5'
-      ]">
-        All
-      </button>
-      <button v-for="cat in categories" :key="cat" @click="selectedCategory = cat" :class="[
-        'px-2.5 py-1 rounded text-xs font-medium whitespace-nowrap transition-colors',
-        selectedCategory === cat
-          ? 'bg-blue-600/20 text-blue-400 border border-blue-500/20'
-          : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/5'
-      ]">
-        {{ cat }}
-      </button>
-    </div>
+    <!-- Generator List (High Density) -->
+    <div class="flex-1 overflow-y-auto px-2 pb-2 mt-1">
+      <!-- Section Header if needed, e.g. "Generators" (Skipping for minimalism) -->
 
-    <!-- Generator List -->
-    <div class="flex-1 overflow-y-auto px-2 space-y-0.5">
       <div v-for="gen in filteredGenerators" :key="gen.id" @click="selectGenerator(gen.id)" :class="[
-        'group flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer transition-all duration-200',
+        'group flex items-center gap-2 px-2.5 py-1.5 mb-0.5 rounded-[5px] cursor-pointer transition-all duration-100 select-none',
         route.params.id === gen.id
-          ? 'bg-blue-600/10 border border-blue-500/20'
-          : 'hover:bg-white/5 border border-transparent hover:border-white/5'
+          ? 'bg-blue-600 text-white shadow-sm' /* Active: Solid Blue like macOS selection */
+          : 'text-zinc-400 hover:bg-white/5 hover:text-zinc-200'
       ]">
-        <div class="flex items-center gap-3 overflow-hidden">
-          <component :is="getCategoryIcon(gen.category)"
-            class="w-4 h-4 text-zinc-500 group-hover:text-blue-400 transition-colors flex-shrink-0" />
-          <div class="flex flex-col overflow-hidden">
-            <span :class="[
-              'text-sm font-medium truncate transition-colors',
-              route.params.id === gen.id ? 'text-blue-100' : 'text-zinc-300 group-hover:text-white'
-            ]">
-              {{ gen.name }}
-            </span>
-          </div>
-        </div>
-
-        <ChevronRight :class="[
-          'w-3 h-3 text-zinc-600 transition-transform duration-200',
-          route.params.id === gen.id ? 'text-blue-500' : 'group-hover:translate-x-0.5 group-hover:text-zinc-400 opacity-0 group-hover:opacity-100'
+        <!-- Icon -->
+        <component :is="getCategoryIcon(gen.category)" :class="[
+          'w-3.5 h-3.5 flex-shrink-0 opacity-80',
+          route.params.id === gen.id ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-400'
         ]" />
+
+        <!-- Name -->
+        <span class="text-[11px] font-medium truncate flex-1 leading-none pt-0.5">
+          {{ gen.name }}
+        </span>
+
+        <!-- Chevron Only on Hover (Subtle) -->
+        <div v-if="route.params.id === gen.id" class="w-1 h-1 rounded-full bg-white/50"></div>
       </div>
     </div>
 
-    <!-- Footer -->
-    <div class="p-3 border-t border-white/5 mt-auto">
+    <!-- Footer (Minimal settings gear) -->
+    <div class="p-2 border-t border-white/5 mt-auto bg-black/20">
       <button @click="router.push('/settings')"
-        class="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors">
+        class="flex items-center justify-center w-8 h-8 rounded-md text-zinc-600 hover:text-zinc-300 hover:bg-white/5 transition-colors">
         <Settings class="w-4 h-4" />
-        <span class="text-sm font-medium">Settings</span>
       </button>
     </div>
   </aside>
