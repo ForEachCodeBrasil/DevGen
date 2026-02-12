@@ -1,0 +1,16 @@
+{
+  "adjectives": [
+    "Dark", "Silent", "Lone", "Swift", "Mad", "Crazy", "Cool", "Epic", "Golden", "Shadow",
+    "Iron", "Ghost", "Mega", "Hyper", "Ultra", "Frost", "Fire", "Storm", "Thunder", "Night",
+    "Wild", "Alpha", "Omega", "Fatal", "Brutal", "Cunning", "Bold", "Sly", "Mighty", "Grand",
+    "Little", "Big", "Old", "New", "Fresh", "Salt", "Sour", "Sweet", "Bitter", "Spicy",
+    "Red", "Blue", "Green", "White", "Black", "Grey", "Yellow", "Purple", "Pink", "Orange"
+  ],
+  "nouns": [
+    "Wolf", "Tiger", "Dragon", "Hawk", "Eagle", "Falcon", "Bear", "Lion", "Shark", "Snake",
+    "Knight", "Warrior", "Hunter", "Slayer", "Blade", "Shield", "Arrow", "Bolt", "Storm", "Wind",
+    "Shadow", "Light", "King", "Queen", "Prince", "Lord", "Master", "Wizard", "Mage", "Rogue",
+    "Viper", "Cobra", "Scorpion", "Spider", "Kraken", "Titan", "Giant", "Dwarf", "Elf", "Orc",
+    "Phoenix", "Raven", "Crow", "Bat", "Owl", "Cat", "Dog", "Fox", "Panda", "Koala"
+  ]
+}

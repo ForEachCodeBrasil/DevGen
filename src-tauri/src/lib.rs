@@ -160,6 +160,7 @@ pub fn run() {
     registry.register(crate::generators::impls::BankAccountGenerator);
     registry.register(crate::generators::impls::VehicleGenerator);
     registry.register(crate::generators::impls::VehiclePlateGenerator);
+    registry.register(crate::generators::impls::NickGenerator);
     registry.register(crate::generators::impls::CreditCardGenerator);
     registry.register(crate::generators::impls::PasswordGenerator);
     registry.register(crate::generators::impls::UuidGenerator);

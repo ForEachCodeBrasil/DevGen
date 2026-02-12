@@ -21,6 +21,12 @@ pub struct AddressData {
     pub neighborhoods: Vec<String>,
 }
 
+#[derive(Deserialize)]
+pub struct NickData {
+    pub adjectives: Vec<String>,
+    pub nouns: Vec<String>,
+}
+
 pub struct Datasets;
 
 impl Datasets {
@@ -46,6 +52,10 @@ impl Datasets {
 
     pub fn get_addresses() -> AddressData {
         serde_json::from_str(include_str!("data/addresses.json")).unwrap()
+    }
+
+    pub fn get_nicks() -> NickData {
+        serde_json::from_str(include_str!("data/nicks.json")).unwrap()
     }
 
     pub fn random_name() -> String {
@@ -82,5 +92,20 @@ impl Datasets {
             rng.gen_range(1000..99999),
             rng.gen_range(0..999)
         )
+    }
+
+    pub fn random_nick() -> String {
+        let nicks = Self::get_nicks();
+        let mut rng = rand::thread_rng();
+
+        let adj = nicks.adjectives.choose(&mut rng).unwrap();
+        let noun = nicks.nouns.choose(&mut rng).unwrap();
+
+        match rng.gen_range(0..4) {
+            0 => format!("{}{}", adj, noun),
+            1 => format!("{}_{}", adj, noun),
+            2 => format!("{}{}{}", adj, noun, rng.gen_range(10..999)),
+            _ => format!("{}.{}", adj.to_lowercase(), noun.to_lowercase()),
+        }
     }
 }
