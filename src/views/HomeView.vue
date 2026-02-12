@@ -27,6 +27,7 @@ const searchQuery = ref('')
 const generators = ref<GeneratorDefinition[]>([])
 const selectedTab = ref<string>('All')
 const isLoading = ref(true)
+const loadError = ref<string | null>(null)
 
 const getCategoryIcon = (category: string) => {
   switch (category.toLowerCase()) {
@@ -44,8 +45,14 @@ const categories = computed(() => {
   return ['All', ...Array.from(cats).sort()]
 })
 
+const PRIORITY_ORDER = [
+  'cpf', 'cnpj', 'cep', 'person', 'name', 'bank_account',
+  'rg', 'cnh', 'pis', 'titulo_eleitor', 'company',
+  'vehicle', 'vehicle_plate', 'credit_card', 'password', 'uuid', 'random_number'
+]
+
 const filteredGenerators = computed(() => {
-  return generators.value.filter(g => {
+  let results = generators.value.filter(g => {
     const matchesSearch =
       g.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
       g.description.toLowerCase().includes(searchQuery.value.toLowerCase())
@@ -53,13 +60,30 @@ const filteredGenerators = computed(() => {
       selectedTab.value === 'All' || g.category === selectedTab.value
     return matchesSearch && matchesTab
   })
+
+  if (selectedTab.value === 'All') {
+    results.sort((a, b) => {
+      const aIdx = PRIORITY_ORDER.indexOf(a.id)
+      const bIdx = PRIORITY_ORDER.indexOf(b.id)
+      if (aIdx === -1 && bIdx === -1) return a.name.localeCompare(b.name)
+      if (aIdx === -1) return 1
+      if (bIdx === -1) return -1
+      return aIdx - bIdx
+    })
+  }
+
+  return results
 })
 
 async function loadGenerators() {
+  isLoading.value = true
+  loadError.value = null
+
   try {
     generators.value = await invoke('list_generators')
   } catch (e) {
     console.error('Failed to list generators', e)
+    loadError.value = 'Não foi possível carregar os geradores.'
   } finally {
     isLoading.value = false
   }
@@ -137,6 +161,24 @@ onMounted(() => loadGenerators())
     <div class="flex-1 overflow-y-auto px-3 pb-2 min-h-0">
       <div v-if="isLoading" class="flex justify-center py-8">
         <Loader2 class="w-5 h-5 text-zinc-500 animate-spin" />
+      </div>
+      <div
+        v-else-if="loadError"
+        class="px-3 py-4 rounded-[8px] border border-red-500/20 bg-red-500/10 text-red-200 space-y-3"
+      >
+        <p class="text-[12px]">{{ loadError }}</p>
+        <button
+          @click="loadGenerators"
+          class="px-2.5 py-1 rounded-[6px] border border-white/10 bg-white/5 hover:bg-white/10 text-[11px] text-zinc-100"
+        >
+          Tentar novamente
+        </button>
+      </div>
+      <div
+        v-else-if="filteredGenerators.length === 0"
+        class="px-3 py-4 rounded-[8px] border border-white/8 bg-white/5 text-zinc-300"
+      >
+        <p class="text-[12px]">Nenhum gerador encontrado para o filtro atual.</p>
       </div>
       <div v-else class="space-y-0.5">
         <button

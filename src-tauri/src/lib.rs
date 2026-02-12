@@ -10,8 +10,8 @@ use std::sync::Arc;
 use store::Store;
 use tauri::{
     menu::{Menu, MenuItem, PredefinedMenuItem, Submenu},
-    tray::{MouseButton, TrayIconBuilder, TrayIconEvent},
-    Emitter, Manager, State,
+    tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
+    Emitter, Manager, PhysicalPosition, Position, State,
 };
 
 struct AppState {
@@ -166,6 +166,24 @@ fn rebuild_tray_quick_menu(app: tauri::AppHandle, quick: Vec<String>) -> Result<
     Ok(())
 }
 
+fn show_main_window(app: &tauri::AppHandle, tray_click_position: Option<PhysicalPosition<f64>>) {
+    if let Some(window) = app.get_webview_window("main") {
+        if let Some(position) = tray_click_position {
+            if let Ok(size) = window.outer_size() {
+                let x = position.x - (size.width as f64 / 2.0);
+                let y = position.y + 8.0;
+                let _ = window.set_position(Position::Physical(PhysicalPosition::new(
+                    x.round() as i32,
+                    y.round() as i32,
+                )));
+            }
+        }
+
+        let _ = window.show();
+        let _ = window.set_focus();
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let registry = GeneratorRegistry::new();
@@ -194,21 +212,13 @@ pub fn run() {
     registry.register(crate::generators::impls::CreditCardGenerator);
     registry.register(crate::generators::impls::PasswordGenerator);
     registry.register(crate::generators::impls::UuidGenerator);
+    registry.register(crate::generators::impls::RandomNumberGenerator);
     registry.register(crate::generators::impls::LoremIpsumGenerator);
     registry.register(crate::generators::impls::LoremPixelGenerator);
     registry.register(crate::generators::impls::QrCodeGenerator);
     registry.register(crate::generators::impls::MetaTagsGenerator);
 
     tauri::Builder::default()
-        .setup(|app| {
-            #[cfg(target_os = "macos")]
-            app.set_activation_policy(tauri::ActivationPolicy::Accessory);
-
-            let store = Arc::new(Store::new(app.app_handle()));
-            app.manage(AppState { registry, store });
-
-            Ok(())
-        })
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
             list_generators,
@@ -220,6 +230,16 @@ pub fn run() {
             rebuild_tray_quick_menu
         ])
         .setup(|app| {
+            #[cfg(target_os = "macos")]
+            app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+
+            let store = Arc::new(Store::new(app.app_handle()));
+            app.manage(AppState { registry, store });
+
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.set_always_on_top(true);
+            }
+
             let show_i = MenuItem::with_id(app, "show", "Abrir DevGen", true, None::<&str>)?;
             let sep1 = PredefinedMenuItem::separator(app)?;
             let sep2 = PredefinedMenuItem::separator(app)?;
@@ -299,16 +319,13 @@ pub fn run() {
             let _tray = TrayIconBuilder::with_id("tray")
                 .icon(app.default_window_icon().unwrap().clone())
                 .menu(&menu)
-                .show_menu_on_left_click(true)
+                .show_menu_on_left_click(false)
                 .on_menu_event(|app, event| match event.id.as_ref() {
                     "quit" => {
                         app.exit(0);
                     }
                     "show" => {
-                        if let Some(window) = app.get_webview_window("main") {
-                            let _ = window.show();
-                            let _ = window.set_focus();
-                        }
+                        show_main_window(app, None);
                     }
                     action_id => {
                         // Assuming this is a quick action, emit it to the frontend
@@ -321,25 +338,28 @@ pub fn run() {
                 .on_tray_icon_event(|tray, event| {
                     if let TrayIconEvent::Click {
                         button: MouseButton::Left,
+                        button_state: MouseButtonState::Up,
+                        position,
                         ..
                     } = event
                     {
                         let app = tray.app_handle();
-                        if let Some(window) = app.get_webview_window("main") {
-                            let _ = window.show();
-                            let _ = window.set_focus();
-                        }
+                        show_main_window(&app, Some(position));
                     }
                 })
                 .build(app)?;
 
             Ok(())
         })
-        .on_window_event(|window, event| {
-            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
-                window.hide().unwrap();
+        .on_window_event(|window, event| match event {
+            tauri::WindowEvent::CloseRequested { api, .. } => {
+                let _ = window.hide();
                 api.prevent_close();
             }
+            tauri::WindowEvent::Focused(false) => {
+                let _ = window.hide();
+            }
+            _ => {}
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

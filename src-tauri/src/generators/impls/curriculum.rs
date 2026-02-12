@@ -82,10 +82,12 @@ impl Generator for CurriculumGenerator {
             ]
         };
 
-        let companies = ["Tech Solutions",
+        let companies = [
+            "Tech Solutions",
             "Innovate Corp",
             "Soft Systems",
-            "Global Dev"];
+            "Global Dev",
+        ];
 
         let objective = objectives[rng.gen_range(0..objectives.len())];
         let role = roles[rng.gen_range(0..roles.len())];

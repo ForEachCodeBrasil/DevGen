@@ -116,6 +116,14 @@ function handleCopy() {
             />
           </button>
           <input
+            v-else-if="field.type === 'number'"
+            :id="field.name"
+            v-model.number="options[field.name]"
+            type="number"
+            min="1"
+            class="glass-input w-32 text-right text-[11px] py-1.5"
+          />
+          <input
             v-else
             :id="field.name"
             v-model="options[field.name]"
