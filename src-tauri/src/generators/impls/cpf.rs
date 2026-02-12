@@ -19,6 +19,16 @@ impl Generator for CpfGenerator {
                         "type": "boolean",
                         "label": "Formatado (Pontuação)",
                         "default": true
+                    },
+                    {
+                        "name": "state",
+                        "type": "select",
+                        "label": "Estado (UF)",
+                        "default": "Aleatório",
+                        "options": [
+                            "Aleatório", "RS", "DF", "GO", "MT", "MS", "TO", "AC", "AM", "AP", "PA", "RO", "RR",
+                            "CE", "MA", "PI", "AL", "PB", "PE", "RN", "BA", "SE", "MG", "ES", "RJ", "SP", "PR", "SC"
+                        ]
                     }
                 ]
             })),
@@ -31,8 +41,39 @@ impl Generator for CpfGenerator {
             .and_then(|v| v.as_bool())
             .unwrap_or(true);
 
+        let state_opt = options
+            .get("state")
+            .and_then(|v| v.as_str())
+            .unwrap_or("Aleatório");
+
         let mut rng = rand::thread_rng();
-        let mut digits: Vec<u8> = (0..9).map(|_| rng.gen_range(0..10)).collect();
+        let mut digits: Vec<u8> = (0..8).map(|_| rng.gen_range(0..10)).collect();
+
+        // 9th digit defines the region:
+        // 0: RS
+        // 1: DF, GO, MT, MS, TO
+        // 2: AC, AM, AP, PA, RO, RR
+        // 3: CE, MA, PI
+        // 4: AL, PB, PE, RN
+        // 5: BA, SE
+        // 6: MG
+        // 7: ES, RJ
+        // 8: SP
+        // 9: PR, SC
+        let ninth_digit = match state_opt {
+            "RS" => 0,
+            "DF" | "GO" | "MT" | "MS" | "TO" => 1,
+            "AC" | "AM" | "AP" | "PA" | "RO" | "RR" => 2,
+            "CE" | "MA" | "PI" => 3,
+            "AL" | "PB" | "PE" | "RN" => 4,
+            "BA" | "SE" => 5,
+            "MG" => 6,
+            "ES" | "RJ" => 7,
+            "SP" => 8,
+            "PR" | "SC" => 9,
+            _ => rng.gen_range(0..10),
+        };
+        digits.push(ninth_digit as u8);
 
         // Calculate first verifier digit
         let mut sum: u32 = 0;

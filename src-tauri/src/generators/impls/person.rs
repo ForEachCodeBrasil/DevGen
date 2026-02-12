@@ -37,28 +37,31 @@ impl Generator for PersonGenerator {
 
         let mut rng = rand::thread_rng();
 
-        // 1. Name
+        // 1. Location (Select first for consistency)
+        let cities = Datasets::get_cities();
+        let city_entry = &cities[rng.gen_range(0..cities.len())];
+        let state = &city_entry.state;
+
+        // 2. Name
         let name = Datasets::random_name();
 
-        // 2. Documents
+        // 3. Documents
         let cpf_gen = CpfGenerator;
         let rg_gen = RgGenerator;
 
-        let cpf_res = cpf_gen.generate(json!({ "mask": mask }))?;
-        let rg_res = rg_gen.generate(json!({ "mask": mask }))?;
+        let cpf_res = cpf_gen.generate(json!({ "mask": mask, "state": state }))?;
+        let rg_res = rg_gen.generate(json!({ "mask": mask, "state": state }))?;
 
-        // 3. Demographics
+        // 4. Demographics
         let age = rng.gen_range(18..80);
 
-        // 4. Contact
+        // 5. Contact
         let email_domains = Datasets::get_email_domains();
         let domain = email_domains[rng.gen_range(0..email_domains.len())];
         let const_part = name.to_lowercase().replace(" ", ".");
         let email = format!("{}@{}", const_part, domain);
 
-        // 5. Location
-        let cities = Datasets::get_cities();
-        let city_entry = &cities[rng.gen_range(0..cities.len())];
+        // 6. Address
         let address = Datasets::random_address();
         let cep = Datasets::random_cep();
 

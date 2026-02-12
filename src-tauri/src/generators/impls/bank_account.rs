@@ -66,7 +66,12 @@ impl Generator for BankAccountGenerator {
                 let op = "001"; // Pessoa física
                 let acc = format!("{:08}", rng.gen_range(1..99999999));
                 let dv = rng.gen_range(0..10).to_string();
-                ("Caixa Econômica", "104", ag, format!("{} {}-{}", op, acc, dv))
+                (
+                    "Caixa Econômica",
+                    "104",
+                    ag,
+                    format!("{} {}-{}", op, acc, dv),
+                )
             }
             _ => ("Desconhecido", "000", "0000".into(), "000000-0".into()),
         };

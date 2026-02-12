@@ -38,8 +38,10 @@ impl Generator for NickGenerator {
             nicks.push(Datasets::random_nick());
         }
 
-        let text = nicks.join("
-");
+        let text = nicks.join(
+            "
+",
+        );
 
         Ok(GenerateResponse {
             text: Some(text),

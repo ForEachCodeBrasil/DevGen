@@ -37,7 +37,14 @@ impl Generator for CompanyGenerator {
 
         let mut rng = rand::thread_rng();
 
-        // 1. Name
+        // 1. Location (Select first for consistency)
+        let cities = Datasets::get_cities();
+        let city_entry = &cities[rng.gen_range(0..cities.len())];
+        let state = &city_entry.state;
+        let address = Datasets::random_address();
+        let cep = Datasets::random_cep();
+
+        // 2. Name
         let surnames = Datasets::get_surnames();
         let name1 = surnames[rng.gen_range(0..surnames.len())];
         let name2 = surnames[rng.gen_range(0..surnames.len())];
@@ -56,35 +63,24 @@ impl Generator for CompanyGenerator {
         let razao_social = format!("{} & {} {}", name1, name2, company_type);
         let fantasy_name = format!("{} {}", name1, company_type);
 
-        // 2. Documents
+        // 3. Documents
         let cnpj_gen = CnpjGenerator;
         let ie_gen = InscricaoEstadualGenerator;
 
         let cnpj_res = cnpj_gen.generate(json!({ "mask": mask }))?;
+        let ie_res = ie_gen.generate(json!({ "mask": mask, "state": state }))?;
 
-        // Pick a random state for IE
-        let cities = Datasets::get_cities();
-        let city_entry = &cities[rng.gen_range(0..cities.len())];
-
-        let ie_res = ie_gen.generate(json!({ "mask": mask, "state": city_entry.state }))?;
-
-        // 3. Contact
+        // 4. Contact
         let email_domains = Datasets::get_email_domains();
         let domain = email_domains[rng.gen_range(0..email_domains.len())];
-        let _const_part = fantasy_name.to_lowercase().replace(" ", ".");
-        let email = format!("contato@{}", domain);
+        let clean_name = name1.to_lowercase().replace(" ", "");
+        let email = format!("contato@{}.{}", clean_name, domain);
         let phone = format!(
             "({:02}) 3{:03}-{:04}",
             rng.gen_range(11..99),
             rng.gen_range(0..999),
             rng.gen_range(0..9999)
         );
-
-        // 4. Location
-        let cities = Datasets::get_cities();
-        let city_entry = &cities[rng.gen_range(0..cities.len())];
-        let address = Datasets::random_address();
-        let cep = Datasets::random_cep();
 
         // Construct structured result
         let cnpj_text = cnpj_res.text.unwrap_or_default();
@@ -100,7 +96,7 @@ impl Generator for CompanyGenerator {
             "CEP": cep,
             "Endereço": address,
             "Cidade": city_entry.city,
-            "Estado": city_entry.state,
+            "Estado": state,
         });
 
         // Format as text block
@@ -109,14 +105,14 @@ impl Generator for CompanyGenerator {
             razao_social,
             fantasy_name,
             cnpj_text,
-            city_entry.state,
+            state,
             ie_text,
             phone,
             email,
             cep,
             address,
             city_entry.city,
-            city_entry.state
+            state
         );
 
         Ok(GenerateResponse {

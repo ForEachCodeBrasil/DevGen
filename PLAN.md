@@ -141,7 +141,7 @@ Objetivo final: app menubar macOS-first em Tauri + Rust + Vue + Tailwind, 100% o
 - [x] 6.8 Implementar gerador de CEP.
 - [x] 6.9 Implementar gerador de nomes.
 - [x] 6.10 Implementar gerador de nicks.
-- [ ] 6.11 Validar coerência (documento x pessoa x endereço quando aplicável).
+- [x] 6.11 Validar coerência (documento x pessoa x endereço quando aplicável).
 
 ### Phase 7 — Utilitários e saídas especiais
 

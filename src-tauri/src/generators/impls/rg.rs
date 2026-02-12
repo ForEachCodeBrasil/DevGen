@@ -9,9 +9,9 @@ impl Generator for RgGenerator {
     fn definition(&self) -> GeneratorDefinition {
         GeneratorDefinition {
             id: "rg".into(),
-            name: "RG (SP)".into(),
+            name: "RG (Registro Geral)".into(),
             category: GeneratorCategory::Documents,
-            description: "Gera um número de Registro Geral (padrão SP) válido.".into(),
+            description: "Gera um número de Registro Geral válido (padrão SP).".into(),
             options: Some(serde_json::json!({
                 "fields": [
                     {
@@ -19,6 +19,13 @@ impl Generator for RgGenerator {
                         "type": "boolean",
                         "label": "Formatado (Pontuação)",
                         "default": true
+                    },
+                    {
+                        "name": "state",
+                        "type": "select",
+                        "label": "Estado (UF)",
+                        "default": "SP",
+                        "options": ["SP", "RJ", "MG", "RS", "PR", "SC", "BA", "CE", "PE", "ES", "GO"]
                     }
                 ]
             })),

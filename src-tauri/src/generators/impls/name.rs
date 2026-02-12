@@ -38,8 +38,10 @@ impl Generator for NameGenerator {
             names.push(Datasets::random_name());
         }
 
-        let text = names.join("
-");
+        let text = names.join(
+            "
+",
+        );
 
         Ok(GenerateResponse {
             text: Some(text),

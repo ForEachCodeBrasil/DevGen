@@ -33,11 +33,7 @@ impl Generator for CepGenerator {
             .unwrap_or(true);
 
         let cep = Datasets::random_cep();
-        let final_cep = if mask {
-            cep
-        } else {
-            cep.replace("-", "")
-        };
+        let final_cep = if mask { cep } else { cep.replace("-", "") };
 
         Ok(GenerateResponse {
             text: Some(final_cep),
