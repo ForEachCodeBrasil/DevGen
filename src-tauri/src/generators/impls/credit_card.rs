@@ -115,6 +115,7 @@ impl Generator for CreditCardGenerator {
                 "expiration": format!("{:02}/{}", exp_month, exp_year),
                 "cvv": cvv
             })),
+            base64_artifact: None,
         })
     }
 }

@@ -54,6 +54,7 @@ impl Generator for TituloEleitorGenerator {
         Ok(GenerateResponse {
             text: Some(titulo_str),
             metadata: None,
+            base64_artifact: None,
         })
     }
 }

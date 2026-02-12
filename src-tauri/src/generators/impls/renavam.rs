@@ -55,6 +55,7 @@ impl Generator for RenavamGenerator {
         Ok(GenerateResponse {
             text: Some(renavam_str),
             metadata: None,
+            base64_artifact: None,
         })
     }
 }

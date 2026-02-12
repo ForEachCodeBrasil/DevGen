@@ -90,6 +90,7 @@ impl Generator for CertidaoNascimentoGenerator {
         Ok(GenerateResponse {
             text: Some(generate_certidao(1, mask)),
             metadata: None,
+            base64_artifact: None,
         })
     }
 }
@@ -115,6 +116,7 @@ impl Generator for CertidaoCasamentoGenerator {
         Ok(GenerateResponse {
             text: Some(generate_certidao(2, mask)),
             metadata: None,
+            base64_artifact: None,
         })
     }
 }
@@ -140,6 +142,7 @@ impl Generator for CertidaoObitoGenerator {
         Ok(GenerateResponse {
             text: Some(generate_certidao(4, mask)),
             metadata: None,
+            base64_artifact: None,
         })
     }
 }

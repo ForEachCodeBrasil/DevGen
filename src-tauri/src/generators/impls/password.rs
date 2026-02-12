@@ -105,6 +105,7 @@ impl Generator for PasswordGenerator {
         Ok(GenerateResponse {
             text: Some(password),
             metadata: None,
+            base64_artifact: None,
         })
     }
 }

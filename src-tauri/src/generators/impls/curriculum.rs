@@ -11,7 +11,7 @@ impl Generator for CurriculumGenerator {
     fn definition(&self) -> GeneratorDefinition {
         GeneratorDefinition {
             id: "curriculum".into(),
-            name: "Gerador de Currículo",
+            name: "Gerador de Currículo".into(),
             category: GeneratorCategory::Person,
             description: "Gera um currículo básico em Markdown.".into(),
             options: Some(json!({
@@ -82,12 +82,10 @@ impl Generator for CurriculumGenerator {
             ]
         };
 
-        let companies = vec![
-            "Tech Solutions",
+        let companies = ["Tech Solutions",
             "Innovate Corp",
             "Soft Systems",
-            "Global Dev",
-        ];
+            "Global Dev"];
 
         let objective = objectives[rng.gen_range(0..objectives.len())];
         let role = roles[rng.gen_range(0..roles.len())];

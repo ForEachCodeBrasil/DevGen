@@ -65,6 +65,7 @@ impl Generator for UuidGenerator {
         Ok(GenerateResponse {
             text: Some(s),
             metadata: None,
+            base64_artifact: None,
         })
     }
 }

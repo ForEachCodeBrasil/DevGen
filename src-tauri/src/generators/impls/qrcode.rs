@@ -3,7 +3,7 @@ use crate::generators::{
 };
 use base64::{engine::general_purpose, Engine as _};
 use image::{ImageBuffer, Luma};
-use qrcode::QrCode;
+use qrcode::{Color, QrCode};
 use std::io::Cursor;
 
 pub struct QrCodeGenerator;
@@ -50,11 +50,22 @@ impl Generator for QrCodeGenerator {
         let code =
             QrCode::new(content.as_bytes()).map_err(|e| GeneratorError::Internal(e.to_string()))?;
 
-        // Render to image
-        let image = code.render::<Luma<u8>>().build();
+        // Manually render QR matrix to ImageBuffer (qrcode crate's render::Luma has incompatible trait bounds with image 0.24)
+        let qr_size = code.width() as u32;
+        let mut img: ImageBuffer<Luma<u8>, Vec<u8>> = ImageBuffer::new(qr_size, qr_size);
+        for y in 0..qr_size {
+            for x in 0..qr_size {
+                let luma = if code[(x as usize, y as usize)] == Color::Dark {
+                    Luma([0u8])
+                } else {
+                    Luma([255u8])
+                };
+                img.put_pixel(x, y, luma);
+            }
+        }
 
         // Resize to requested size (using Nearest to keep QR sharp)
-        let img = image::imageops::resize(&image, size, size, image::imageops::FilterType::Nearest);
+        let img = image::imageops::resize(&img, size, size, image::imageops::FilterType::Nearest);
 
         let mut bytes: Vec<u8> = Vec::new();
         img.write_to(&mut Cursor::new(&mut bytes), image::ImageOutputFormat::Png)

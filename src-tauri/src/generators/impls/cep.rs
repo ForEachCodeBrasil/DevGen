@@ -38,6 +38,7 @@ impl Generator for CepGenerator {
         Ok(GenerateResponse {
             text: Some(final_cep),
             metadata: None,
+            base64_artifact: None,
         })
     }
 }

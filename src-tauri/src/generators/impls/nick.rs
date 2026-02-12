@@ -46,6 +46,7 @@ impl Generator for NickGenerator {
         Ok(GenerateResponse {
             text: Some(text),
             metadata: Some(json!({ "nicks": nicks })),
+            base64_artifact: None,
         })
     }
 }

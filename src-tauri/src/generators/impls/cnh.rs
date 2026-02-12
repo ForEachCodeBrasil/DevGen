@@ -52,6 +52,7 @@ impl Generator for CnhGenerator {
         Ok(GenerateResponse {
             text: Some(cnh_str),
             metadata: None,
+            base64_artifact: None,
         })
     }
 }

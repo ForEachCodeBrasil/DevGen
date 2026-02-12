@@ -73,6 +73,7 @@ impl Generator for RgGenerator {
         Ok(GenerateResponse {
             text: Some(formatted),
             metadata: None,
+            base64_artifact: None,
         })
     }
 }

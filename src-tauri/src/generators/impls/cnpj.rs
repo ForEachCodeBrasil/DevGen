@@ -75,6 +75,7 @@ impl Generator for CnpjGenerator {
         Ok(GenerateResponse {
             text: Some(formatted),
             metadata: None,
+            base64_artifact: None,
         })
     }
 }

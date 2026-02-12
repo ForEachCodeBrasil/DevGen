@@ -46,6 +46,7 @@ impl Generator for LoremIpsumGenerator {
         Ok(GenerateResponse {
             text: Some(output),
             metadata: None,
+            base64_artifact: None,
         })
     }
 }

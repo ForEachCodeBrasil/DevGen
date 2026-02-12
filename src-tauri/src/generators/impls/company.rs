@@ -118,6 +118,7 @@ impl Generator for CompanyGenerator {
         Ok(GenerateResponse {
             text: Some(text),
             metadata: Some(data),
+            base64_artifact: None,
         })
     }
 }

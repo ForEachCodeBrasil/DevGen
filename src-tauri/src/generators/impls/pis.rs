@@ -62,6 +62,7 @@ impl Generator for PisGenerator {
         Ok(GenerateResponse {
             text: Some(formatted),
             metadata: None,
+            base64_artifact: None,
         })
     }
 }

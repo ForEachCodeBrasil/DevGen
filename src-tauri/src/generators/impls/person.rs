@@ -99,6 +99,7 @@ impl Generator for PersonGenerator {
         Ok(GenerateResponse {
             text: Some(text),
             metadata: Some(data),
+            base64_artifact: None,
         })
     }
 }

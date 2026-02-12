@@ -79,6 +79,7 @@ impl Generator for MetaTagsGenerator {
         Ok(GenerateResponse {
             text: Some(output),
             metadata: None,
+            base64_artifact: None,
         })
     }
 }

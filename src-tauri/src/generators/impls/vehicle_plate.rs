@@ -58,6 +58,7 @@ impl Generator for VehiclePlateGenerator {
         Ok(GenerateResponse {
             text: Some(plate),
             metadata: None,
+            base64_artifact: None,
         })
     }
 }

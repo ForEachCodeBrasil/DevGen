@@ -46,6 +46,7 @@ impl Generator for NameGenerator {
         Ok(GenerateResponse {
             text: Some(text),
             metadata: Some(json!({ "names": names })),
+            base64_artifact: None,
         })
     }
 }

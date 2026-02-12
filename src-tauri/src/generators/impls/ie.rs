@@ -53,6 +53,7 @@ impl Generator for InscricaoEstadualGenerator {
         Ok(GenerateResponse {
             text: Some(formatted),
             metadata: Some(serde_json::json!({ "state": state, "raw": ie })),
+            base64_artifact: None,
         })
     }
 }
