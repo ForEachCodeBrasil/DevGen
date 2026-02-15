@@ -439,8 +439,19 @@ pub fn run() {
 
             let menu = Menu::with_items(app, &[&show_i, &sep1, &generate_submenu, &sep2, &quit_i])?;
 
+            let resource_path = app
+                .path()
+                .resolve("icons/tray-icon.png", tauri::path::BaseDirectory::Resource)
+                .unwrap();
+
+            let img = ::image::open(&resource_path).expect("Failed to load tray icon");
+            let rgba_img = img.into_rgba8();
+            let (width, height) = rgba_img.dimensions();
+            let tray_icon = tauri::image::Image::new_owned(rgba_img.into_raw(), width, height);
+
             let _tray = TrayIconBuilder::with_id("tray")
-                .icon(app.default_window_icon().unwrap().clone())
+                .icon(tray_icon)
+                .icon_as_template(true)
                 .menu(&menu)
                 .show_menu_on_left_click(false)
                 .on_menu_event(|app, event| match event.id.as_ref() {
