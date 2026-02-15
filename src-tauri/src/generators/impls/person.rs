@@ -16,6 +16,7 @@ impl Generator for PersonGenerator {
             category: GeneratorCategory::Person,
             description: "Gera dados completos de uma pessoa (Nome, CPF, RG, Endereço, etc)."
                 .into(),
+            requires_pro: false,
             options: Some(json!({
                 "fields": [
                     {

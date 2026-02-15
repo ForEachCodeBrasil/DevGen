@@ -13,6 +13,7 @@ impl Generator for InscricaoEstadualGenerator {
             category: GeneratorCategory::Documents,
             description: "Gera um número de Inscrição Estadual válido para o estado selecionado."
                 .into(),
+            requires_pro: false,
             options: Some(serde_json::json!({
                 "fields": [
                     {
@@ -727,7 +728,7 @@ fn generate_ie_rs(mask: bool) -> (String, String) {
 }
 
 // RO: 14 digits.
-fn generate_ie_ro(mask: bool) -> (String, String) {
+fn generate_ie_ro(_mask: bool) -> (String, String) {
     let mut rng = rand::thread_rng();
     let mut digits: Vec<u8> = (0..13).map(|_| rng.gen_range(0..10)).collect();
 
@@ -742,11 +743,7 @@ fn generate_ie_ro(mask: bool) -> (String, String) {
     digits.push(dv as u8);
 
     let s: String = digits.iter().map(|d| d.to_string()).collect();
-    let f = if mask {
-        s.clone() // RO 14 digits, usually just numbers. Using mask to silence warning.
-    } else {
-        s.clone()
-    };
+    let f = s.clone();
     (s, f)
 }
 

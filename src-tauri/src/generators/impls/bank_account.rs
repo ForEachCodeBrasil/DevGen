@@ -13,6 +13,7 @@ impl Generator for BankAccountGenerator {
             name: "Conta Bancária".into(),
             category: GeneratorCategory::Utilities,
             description: "Gera dados de conta bancária de diversos bancos brasileiros.".into(),
+            requires_pro: false,
             options: Some(json!({
                 "fields": [
                     {

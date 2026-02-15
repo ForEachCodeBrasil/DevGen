@@ -13,6 +13,7 @@ impl Generator for PasswordGenerator {
             name: "Senha".into(),
             category: GeneratorCategory::Utilities,
             description: "Gera senhas seguras com letras, números e símbolos.".into(),
+            requires_pro: false,
             options: Some(json!({
                 "fields": [
                     {

@@ -1,174 +1,163 @@
 @import "tailwindcss";
 
 @theme {
-  /* macOS / SF Pro system font stack (CodexBar-style native typography) */
-  --font-sans: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
-  --font-mono: "SF Mono", ui-monospace, "Cascadia Code", "Source Code Pro", Menlo,
-    Monaco, "Courier New", monospace;
+  --font-mono: "JetBrains Mono", monospace;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
-  /* Typography scale (SF Pro semantic sizes) */
-  --text-headline: 1.0625rem; /* 17px */
-  --text-subheadline: 0.9375rem; /* 15px */
-  --text-body: 1rem; /* 16px */
-  --text-footnote: 0.8125rem; /* 13px */
-  --text-caption: 0.75rem; /* 12px */
-  --text-caption2: 0.6875rem; /* 11px */
+  /* Lycento Design Pattern Colors */
+  --color-deep-space: #0d1117;
+  --color-dark-surface: #161b22;
+  --color-border-dark: #21262d;
+  --color-border-highlight: #30363d;
+  
+  --color-neon-green: #22c55e;
+  --color-neon-green-light: #4ade80;
+  --color-error-red: #ef4444;
+  --color-warning-amber: #f59e0b;
+  --color-info-blue: #3b82f6;
 
-  /* Spring-like easing (CodexBar response: 0.32, damping: 0.85) */
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --ease-spring-out: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Custom shadows */
+  --shadow-neon: 0 0 15px rgba(34, 197, 94, 0.3);
+  --shadow-neon-strong: 0 0 20px rgba(34, 197, 94, 0.5);
+  --shadow-error: 0 0 15px rgba(239, 68, 68, 0.4);
 }
 
 @layer base {
   :root {
-    /* Semantic colors (CodexBar-style, adapt to prefers-color-scheme) */
-    --color-bg-app: rgba(20, 20, 20, 0.6);
-    --color-sidebar: rgba(10, 10, 10, 0.4);
-    --color-border: rgba(255, 255, 255, 0.1);
-    --color-text-primary: #e4e4e7;
-    --color-text-secondary: #a1a1aa;
-    --color-text-tertiary: #71717a;
-    --color-accent: #3b82f6;
-    --color-accent-hover: #2563eb;
-    --color-selected-bg: rgba(59, 130, 246, 0.3);
-    --color-selected-text: #ffffff;
+    color-scheme: dark;
   }
-
-  /* Light mode (macOS semantic adaptation) */
-  @media (prefers-color-scheme: light) {
-    :root {
-      --color-bg-app: rgba(246, 246, 247, 0.85);
-      --color-sidebar: rgba(235, 235, 240, 0.9);
-      --color-border: rgba(0, 0, 0, 0.08);
-      --color-text-primary: #1d1d1f;
-      --color-text-secondary: #6e6e73;
-      --color-text-tertiary: #8e8e93;
-      --color-accent: #007aff;
-      --color-accent-hover: #0051d5;
-      --color-selected-bg: rgba(0, 122, 255, 0.15);
-      --color-selected-text: #1d1d1f;
-    }
-  }
-
+  
   html, body {
-    background: transparent !important;
-    @apply text-white font-sans antialiased overflow-hidden selection:bg-blue-500/30 selection:text-white;
-    font-feature-settings: "tnum" 1;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    @apply bg-deep-space text-gray-100 font-mono antialiased;
+    background-color: var(--color-deep-space);
   }
 
-  #app {
-    min-height: 100vh;
-    background: transparent;
-  }
-}
-
-/* Semantic typography utilities (CodexBar / SF Pro style) */
-@layer utilities {
-  .text-headline {
-    font-size: var(--text-headline);
-    font-weight: 600;
-    letter-spacing: -0.02em;
-  }
-  .text-subheadline {
-    font-size: var(--text-subheadline);
-    font-weight: 400;
-    letter-spacing: -0.01em;
-  }
-  .text-footnote {
-    font-size: var(--text-footnote);
-    font-weight: 400;
-  }
-  .text-caption {
-    font-size: var(--text-caption);
-    font-weight: 400;
-  }
-  .text-caption2 {
-    font-size: var(--text-caption2);
-    font-weight: 500;
+  /* Technical Grid Background */
+  body {
+    background-image: 
+      linear-gradient(to right, #21262d 1px, transparent 1px),
+      linear-gradient(to bottom, #21262d 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-attachment: fixed; /* Keep grid fixed while scrolling */
   }
 
-  /* Semantic color utilities (use var() for light/dark adaptation) */
-  .text-primary {
-    color: var(--color-text-primary);
+  /* Custom scrollbar to match the theme */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
   }
-  .text-secondary {
-    color: var(--color-text-secondary);
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-deep-space;
   }
-  .text-tertiary {
-    color: var(--color-text-tertiary);
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-border-highlight rounded-sm;
   }
-  .bg-app {
-    background-color: var(--color-bg-app);
-  }
-  .border-semantic {
-    border-color: var(--color-border);
-  }
-
-  /* Spring-like transitions */
-  .transition-spring {
-    transition-timing-function: var(--ease-spring);
-  }
-  .transition-spring-out {
-    transition-timing-function: var(--ease-spring-out);
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-600;
   }
 }
 
 @layer components {
-  .glass-panel {
-    @apply bg-zinc-900/40 backdrop-blur-md border border-white/5;
+  /* Layout & Containers */
+  .layout-container {
+    @apply min-h-screen w-full flex flex-col;
   }
 
-  .glass-button {
-    @apply px-3 py-1.5 rounded-[6px] transition-all duration-200
-           bg-white/5 hover:bg-white/10 active:bg-white/15
-           border border-white/5 text-sm font-medium text-zinc-300;
-    transition-timing-function: var(--ease-spring-out);
+  .content-container {
+    @apply max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6;
   }
 
-  /* macOS-style native controls (CodexBar / NSSwitch / NSPopUpButton mimicry) */
-  .glass-input {
-    @apply rounded-[6px] px-3 py-2 text-[13px] text-zinc-200 placeholder-zinc-500
-           bg-zinc-950/60 border border-white/10
-           focus:outline-none focus:ring-[1.5px] focus:ring-blue-500/40 focus:border-blue-500/50
-           hover:border-white/15 transition-all duration-150;
+  /* Cards */
+  .card {
+    @apply rounded-sm border border-gray-800 bg-dark-surface p-4 shadow-lg shadow-black/50;
+  }
+  
+  .card-header {
+    @apply mb-4 flex items-center justify-between border-b border-gray-800 pb-2;
   }
 
-  /* Native-style select (NSPopUpButton) */
-  .native-select {
-    @apply appearance-none rounded-[6px] py-2 pl-3 pr-8 text-[13px] text-zinc-200
-           bg-zinc-950/60 border border-white/10 cursor-pointer
-           focus:outline-none focus:ring-[1.5px] focus:ring-blue-500/40 focus:border-blue-500/50
-           hover:border-white/15 transition-all duration-150;
+  .card-title {
+    @apply text-lg font-semibold text-gray-100;
   }
 
-  /* Native-style toggle (NSSwitch) - use with wrapper, track + thumb */
-  .native-toggle-track {
-    @apply relative inline-flex h-[22px] w-[38px] shrink-0 cursor-pointer rounded-full
-           border border-white/5 transition-colors duration-200 ease-out
-           focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:ring-offset-2 focus:ring-offset-zinc-900;
-  }
-  .native-toggle-track-on {
-    @apply bg-blue-500;
-  }
-  .native-toggle-track-off {
-    @apply bg-zinc-600/80;
-  }
-  .native-toggle-thumb {
-    @apply pointer-events-none inline-block h-[18px] w-[18px] transform rounded-full
-           bg-white shadow-sm ring-0 transition-transform duration-200 ease-out;
+  /* Buttons */
+  .btn {
+    @apply inline-flex items-center justify-center rounded-sm px-4 py-2 text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-neon-green/50 disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
-  /* Capsular progress bar (CodexBar-style with smooth fill animation) */
-  .progress-bar-track {
-    @apply h-1.5 w-full rounded-full overflow-hidden bg-zinc-800/90;
+  .btn-primary {
+    @apply bg-neon-green text-black hover:bg-neon-green-light hover:shadow-neon;
   }
-  .progress-bar-fill-green {
-    @apply h-full min-w-0 rounded-full transition-[width] duration-500 ease-out bg-gradient-to-r from-green-600 to-green-500/90;
+
+  .btn-secondary {
+    @apply border border-gray-700 bg-transparent text-gray-300 hover:border-neon-green/50 hover:text-neon-green-light;
   }
-  .progress-bar-fill-blue {
-    @apply h-full min-w-0 rounded-full transition-[width] duration-500 ease-out bg-gradient-to-r from-blue-600 to-blue-500/80;
+
+  .btn-danger {
+    @apply bg-error-red text-white hover:bg-red-400 hover:shadow-error;
   }
+  
+  .btn-ghost {
+    @apply text-gray-400 hover:text-gray-100 hover:bg-gray-800/50;
+  }
+
+  .btn-icon {
+    @apply p-2;
+  }
+
+  /* Form Inputs */
+  .input-field {
+    @apply w-full rounded-sm border border-gray-700 bg-deep-space px-3 py-2 text-sm text-gray-100 placeholder-gray-500 transition-all focus:border-neon-green/50 focus:ring-1 focus:ring-neon-green/50 focus:outline-none;
+  }
+  
+  .input-label {
+    @apply mb-1 block text-xs font-medium text-gray-400;
+  }
+
+  /* Status Badges */
+  .badge {
+    @apply inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium border;
+  }
+  
+  .badge-success {
+    @apply border-neon-green/20 bg-neon-green/10 text-neon-green-light;
+  }
+  
+  .badge-error {
+    @apply border-error-red/20 bg-error-red/10 text-red-400;
+  }
+  
+  .badge-warning {
+    @apply border-warning-amber/20 bg-warning-amber/10 text-amber-400;
+  }
+  
+  .badge-info {
+    @apply border-info-blue/20 bg-info-blue/10 text-blue-400;
+  }
+
+  /* Typography */
+  .text-page-title {
+    @apply text-2xl font-bold text-gray-100 tracking-tight;
+  }
+  
+  .text-section-title {
+    @apply text-xl font-semibold text-gray-100;
+  }
+  
+  .text-muted {
+    @apply text-gray-500;
+  }
+
+  /* Animations */
+  .animate-glow {
+    animation: pulse-glow 2s infinite;
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 5px rgba(34, 197, 94, 0.3); }
+  50% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.5); }
 }

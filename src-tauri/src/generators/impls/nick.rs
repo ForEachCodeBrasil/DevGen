@@ -13,6 +13,7 @@ impl Generator for NickGenerator {
             name: "Nick / Apelido".into(),
             category: GeneratorCategory::Utilities,
             description: "Gera apelidos / nicknames criativos.".into(),
+            requires_pro: false,
             options: Some(json!({
                 "fields": [
                     {

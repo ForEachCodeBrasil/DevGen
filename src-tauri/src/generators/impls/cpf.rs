@@ -12,6 +12,7 @@ impl Generator for CpfGenerator {
             name: "CPF".into(),
             category: GeneratorCategory::Documents,
             description: "Gera um número de Cadastro de Pessoas Físicas válido.".into(),
+            requires_pro: false,
             options: Some(serde_json::json!({
                 "fields": [
                     {
@@ -89,5 +90,73 @@ impl Generator for CpfGenerator {
             metadata: None,
             base64_artifact: None,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    fn is_valid_cpf_digits(cpf: &str) -> bool {
+        if cpf.len() != 11 || !cpf.chars().all(|c| c.is_ascii_digit()) {
+            return false;
+        }
+
+        let digits: Vec<u8> = cpf
+            .chars()
+            .map(|c| c.to_digit(10).expect("digit") as u8)
+            .collect();
+
+        let mut sum_d1: u32 = 0;
+        for (i, digit) in digits.iter().take(9).enumerate() {
+            sum_d1 += *digit as u32 * (10 - i as u32);
+        }
+        let rem_d1 = sum_d1 % 11;
+        let expected_d1 = if rem_d1 < 2 { 0 } else { 11 - rem_d1 } as u8;
+
+        let mut sum_d2: u32 = 0;
+        for (i, digit) in digits.iter().take(10).enumerate() {
+            sum_d2 += *digit as u32 * (11 - i as u32);
+        }
+        let rem_d2 = sum_d2 % 11;
+        let expected_d2 = if rem_d2 < 2 { 0 } else { 11 - rem_d2 } as u8;
+
+        digits[9] == expected_d1 && digits[10] == expected_d2
+    }
+
+    #[test]
+    fn generates_masked_cpf_by_default() {
+        let response = CpfGenerator
+            .generate(json!({}))
+            .expect("cpf generation should succeed");
+        let text = response.text.expect("cpf response should include text");
+
+        assert_eq!(text.len(), 14);
+        assert_eq!(text.chars().nth(3), Some('.'));
+        assert_eq!(text.chars().nth(7), Some('.'));
+        assert_eq!(text.chars().nth(11), Some('-'));
+    }
+
+    #[test]
+    fn generates_multiple_unmasked_valid_cpfs() {
+        let response = CpfGenerator
+            .generate(json!({ "mask": false, "count": 5 }))
+            .expect("cpf generation should succeed");
+        let text = response.text.expect("cpf response should include text");
+
+        let lines: Vec<&str> = text.lines().collect();
+        assert_eq!(lines.len(), 5);
+        assert!(lines.iter().all(|cpf| is_valid_cpf_digits(cpf)));
+    }
+
+    #[test]
+    fn caps_count_at_100() {
+        let response = CpfGenerator
+            .generate(json!({ "mask": false, "count": 999 }))
+            .expect("cpf generation should succeed");
+        let text = response.text.expect("cpf response should include text");
+
+        assert_eq!(text.lines().count(), 100);
     }
 }

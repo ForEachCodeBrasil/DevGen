@@ -12,6 +12,7 @@ impl Generator for PisGenerator {
             name: "PIS/PASEP".into(),
             category: GeneratorCategory::Documents,
             description: "Gera um número de PIS/PASEP válido.".into(),
+            requires_pro: false,
             options: Some(serde_json::json!({
                 "fields": [
                    {

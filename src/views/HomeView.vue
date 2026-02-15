@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { invoke } from '@tauri-apps/api/core'
+
+
 import {
   Search,
   Settings,
@@ -20,6 +22,7 @@ interface GeneratorDefinition {
   name: string
   category: string
   description: string
+  requires_pro: boolean
 }
 
 const router = useRouter()
@@ -101,43 +104,43 @@ onMounted(() => loadGenerators())
 </script>
 
 <template>
-  <div class="flex flex-col h-screen overflow-hidden panel-bg">
-    <!-- Header with title bar drag -->
+  <div class="flex flex-col h-screen overflow-hidden bg-deep-space">
+    <!-- Header -->
     <div
-      class="flex items-center justify-between px-4 pt-12 pb-2 border-b border-white/5 flex-shrink-0"
+      class="flex items-center justify-between px-4 pt-5 pb-3 border-b border-border-dark bg-dark-surface/50"
       data-tauri-drag-region
     >
       <div class="flex items-center gap-2">
         <div
-          class="w-6 h-6 rounded-md bg-blue-500/20 border border-blue-500/30 flex items-center justify-center"
+          class="w-6 h-6 rounded-sm bg-neon-green/10 border border-neon-green/30 flex items-center justify-center text-neon-green"
         >
-          <svg class="w-3 h-3 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="m18 16 4-4-4-4" /><path d="m6 8-4 4 4 4" /><path d="m14.5 4-5 16" />
           </svg>
         </div>
-        <span class="text-[13px] font-semibold text-zinc-100">DevGen</span>
+        <span class="text-sm font-bold tracking-tight text-gray-100">DEV<span class="text-neon-green">GEN</span></span>
       </div>
       <span
-        class="text-[9px] px-1.5 py-0.5 rounded bg-green-500/15 text-green-400 font-medium"
+        class="badge badge-success"
       >
-        Offline
+        Stable v1.0
       </span>
     </div>
 
-    <!-- Tabs (CodexBar-style) -->
+    <!-- Tabs -->
     <div
-      class="flex gap-0.5 px-3 py-2 border-b border-white/5 overflow-x-auto no-scrollbar flex-shrink-0"
+      class="flex gap-2 px-4 py-3 border-b border-border-dark overflow-x-auto no-scrollbar shrink-0"
       data-tauri-drag-region
     >
       <button
         v-for="cat in categories"
         :key="cat"
         @click="selectedTab = cat"
+        class="px-3 py-1 text-xs font-medium rounded-sm border transition-all duration-200"
         :class="[
-          'px-2.5 py-1 rounded-[5px] text-[11px] font-medium whitespace-nowrap transition-all duration-150',
           selectedTab === cat
-            ? 'bg-blue-500/30 text-blue-200 border border-blue-500/40'
-            : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/5 border border-transparent'
+            ? 'bg-neon-green/10 border-neon-green/50 text-neon-green shadow-[0_0_10px_rgba(34,197,94,0.2)]'
+            : 'bg-transparent border-transparent text-gray-400 hover:text-gray-200 hover:bg-white/5'
         ]"
       >
         {{ cat }}
@@ -145,77 +148,92 @@ onMounted(() => loadGenerators())
     </div>
 
     <!-- Search -->
-    <div class="px-3 py-2 flex-shrink-0">
-      <div class="relative">
-        <Search class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500" />
+    <div class="px-4 py-3 shrink-0">
+      <div class="relative group">
+        <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-neon-green transition-colors" />
         <input
           v-model="searchQuery"
           type="text"
-          placeholder="Search generators..."
-          class="w-full bg-white/5 border border-white/5 rounded-[6px] pl-8 pr-3 py-1.5 text-[11px] text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-white/10 transition-colors"
+          placeholder="SEARCH GENERATORS..."
+          class="w-full bg-dark-surface border border-gray-800 rounded-sm pl-9 pr-4 py-2 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-neon-green/50 focus:ring-1 focus:ring-neon-green/50 transition-all font-mono"
         />
       </div>
     </div>
 
     <!-- Generator list -->
-    <div class="flex-1 overflow-y-auto px-3 pb-2 min-h-0">
-      <div v-if="isLoading" class="flex justify-center py-8">
-        <Loader2 class="w-5 h-5 text-zinc-500 animate-spin" />
+    <div class="flex-1 overflow-y-auto px-4 pb-2 min-h-0 space-y-1">
+      <div v-if="isLoading" class="flex justify-center py-12">
+        <Loader2 class="w-6 h-6 text-neon-green animate-spin" />
       </div>
+      
       <div
         v-else-if="loadError"
-        class="px-3 py-4 rounded-[8px] border border-red-500/20 bg-red-500/10 text-red-200 space-y-3"
+        class="p-4 rounded-sm border border-border-dark bg-dark-surface text-center space-y-3"
       >
-        <p class="text-[12px]">{{ loadError }}</p>
+        <p class="text-sm text-red-400 font-mono">{{ loadError }}</p>
         <button
           @click="loadGenerators"
-          class="px-2.5 py-1 rounded-[6px] border border-white/10 bg-white/5 hover:bg-white/10 text-[11px] text-zinc-100"
+          class="btn btn-secondary btn-sm"
         >
-          Tentar novamente
+          Retry Connection
         </button>
       </div>
+      
       <div
         v-else-if="filteredGenerators.length === 0"
-        class="px-3 py-4 rounded-[8px] border border-white/8 bg-white/5 text-zinc-300"
+        class="p-8 text-center text-gray-500 font-mono text-sm border border-dashed border-gray-800 rounded-sm"
       >
-        <p class="text-[12px]">Nenhum gerador encontrado para o filtro atual.</p>
+        NO_MATCH_FOUND
       </div>
-      <div v-else class="space-y-0.5">
-        <button
-          v-for="gen in filteredGenerators"
-          :key="gen.id"
-          @click="selectGenerator(gen.id)"
-          class="w-full flex items-center gap-2 px-2.5 py-2 rounded-[6px] text-left transition-all duration-150 group hover:bg-white/5"
-        >
-          <component
-            :is="getCategoryIcon(gen.category)"
-            class="w-3.5 h-3.5 text-zinc-500 group-hover:text-zinc-400 shrink-0"
-          />
-          <span class="text-[12px] text-zinc-300 group-hover:text-zinc-100 flex-1 truncate">
-            {{ gen.name }}
+      
+      <button
+        v-for="gen in filteredGenerators"
+        :key="gen.id"
+        @click="selectGenerator(gen.id)"
+        class="w-full flex items-center justify-between p-3 rounded-sm border border-transparent hover:border-neon-green/30 hover:bg-dark-surface/80 group transition-all duration-200"
+      >
+        <div class="flex items-center gap-3">
+          <div class="p-2 rounded-sm bg-gray-900 group-hover:bg-black/50 text-gray-500 group-hover:text-neon-green transition-colors">
+            <component :is="getCategoryIcon(gen.category)" class="w-4 h-4" />
+          </div>
+          <div class="text-left">
+            <div class="text-sm font-medium text-gray-200 group-hover:text-white font-mono">{{ gen.name }}</div>
+            <div class="text-xs text-gray-500 group-hover:text-gray-400">{{ gen.description }}</div>
+          </div>
+        </div>
+        
+        <div class="flex items-center gap-3">
+          <span
+            v-if="gen.requires_pro"
+            class="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded-sm bg-warning-amber/10 text-warning-amber border border-warning-amber/20 font-bold"
+          >
+            PRO
           </span>
-          <ChevronRight class="w-3.5 h-3.5 text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity" />
-        </button>
-      </div>
+          <ChevronRight class="w-4 h-4 text-gray-700 group-hover:text-neon-green group-hover:translate-x-0.5 transition-all" />
+        </div>
+      </button>
     </div>
 
-    <!-- Footer menu (CodexBar-style) -->
+    <!-- Footer menu -->
     <div
-      class="border-t border-white/5 px-3 py-2 space-y-0.5 flex-shrink-0"
+      class="border-t border-border-dark px-2 py-2 flex items-center justify-between shrink-0 bg-dark-surface/30"
       data-tauri-drag-region
     >
       <button
         @click="router.push('/settings')"
-        class="w-full flex items-center gap-2 px-2.5 py-2 rounded-[6px] text-left text-[12px] text-zinc-400 hover:bg-white/5 hover:text-zinc-200 transition-all duration-150"
+        class="flex items-center gap-2 px-3 py-2 rounded-sm text-xs font-mono text-gray-500 hover:text-neon-green hover:bg-white/5 transition-colors"
       >
         <Settings class="w-3.5 h-3.5" />
-        Settings...
+        SYS_CONFIG
       </button>
+
+
+
       <button
         @click="quit"
-        class="w-full flex items-center gap-2 px-2.5 py-2 rounded-[6px] text-left text-[12px] text-zinc-400 hover:bg-white/5 hover:text-zinc-200 transition-all duration-150"
+        class="flex items-center gap-2 px-3 py-2 rounded-sm text-xs font-mono text-gray-500 hover:text-error-red hover:bg-white/5 transition-colors"
       >
-        Quit
+        EXIT
       </button>
     </div>
   </div>
@@ -228,10 +246,5 @@ onMounted(() => loadGenerators())
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
-}
-.panel-bg {
-  background: rgba(0, 0, 0, 0.25);
-  backdrop-filter: blur(40px);
-  -webkit-backdrop-filter: blur(40px);
 }
 </style>

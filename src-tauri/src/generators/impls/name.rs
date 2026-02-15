@@ -13,6 +13,7 @@ impl Generator for NameGenerator {
             name: "Nome de Pessoa".into(),
             category: GeneratorCategory::Person,
             description: "Gera nomes completos de pessoas.".into(),
+            requires_pro: false,
             options: Some(json!({
                 "fields": [
                     {

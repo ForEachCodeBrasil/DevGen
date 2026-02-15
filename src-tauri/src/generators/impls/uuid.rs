@@ -13,6 +13,7 @@ impl Generator for UuidGenerator {
             name: "UUID v4".into(),
             category: GeneratorCategory::Utilities,
             description: "Gera um Identificador Único Universal (versão 4).".into(),
+            requires_pro: false,
             options: Some(json!({
                 "fields": [
                     {

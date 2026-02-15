@@ -35,6 +35,18 @@ impl GeneratorRegistry {
         list
     }
 
+    pub fn list_with_access(
+        &self,
+        pro_generators: &std::collections::HashSet<String>,
+        is_pro: bool,
+    ) -> Vec<GeneratorDefinition> {
+        let mut list = self.list();
+        for def in &mut list {
+            def.requires_pro = pro_generators.contains(&def.id) && !is_pro;
+        }
+        list
+    }
+
     pub fn generate(
         &self,
         id: &str,
@@ -46,5 +58,85 @@ impl GeneratorRegistry {
         } else {
             Err(GeneratorError::NotFound)
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::generators::{GeneratorCategory, GeneratorDefinition};
+    use serde_json::json;
+
+    struct StubGenerator {
+        id: &'static str,
+        name: &'static str,
+        category: GeneratorCategory,
+    }
+
+    impl Generator for StubGenerator {
+        fn definition(&self) -> GeneratorDefinition {
+            GeneratorDefinition {
+                id: self.id.into(),
+                name: self.name.into(),
+                category: self.category,
+                description: "stub".into(),
+                requires_pro: false,
+                options: None,
+            }
+        }
+
+        fn generate(&self, options: serde_json::Value) -> Result<GenerateResponse, GeneratorError> {
+            Ok(GenerateResponse {
+                text: Some(format!("{}:{}", self.id, options)),
+                metadata: None,
+                base64_artifact: None,
+            })
+        }
+    }
+
+    #[test]
+    fn list_is_sorted_by_category_then_name() {
+        let registry = GeneratorRegistry::new();
+        registry.register(StubGenerator {
+            id: "person_b",
+            name: "B",
+            category: GeneratorCategory::Person,
+        });
+        registry.register(StubGenerator {
+            id: "documents_a",
+            name: "A",
+            category: GeneratorCategory::Documents,
+        });
+        registry.register(StubGenerator {
+            id: "person_a",
+            name: "A",
+            category: GeneratorCategory::Person,
+        });
+
+        let ids: Vec<String> = registry.list().into_iter().map(|d| d.id).collect();
+        assert_eq!(ids, vec!["documents_a", "person_a", "person_b"]);
+    }
+
+    #[test]
+    fn generate_returns_not_found_for_unknown_id() {
+        let registry = GeneratorRegistry::new();
+        let err = registry.generate("missing", json!({})).unwrap_err();
+        assert!(matches!(err, GeneratorError::NotFound));
+    }
+
+    #[test]
+    fn generate_uses_registered_generator() {
+        let registry = GeneratorRegistry::new();
+        registry.register(StubGenerator {
+            id: "echo",
+            name: "Echo",
+            category: GeneratorCategory::Utilities,
+        });
+
+        let response = registry
+            .generate("echo", json!({ "mask": true }))
+            .expect("registered generator should execute");
+
+        assert_eq!(response.text.as_deref(), Some("echo:{\"mask\":true}"));
     }
 }

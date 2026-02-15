@@ -13,16 +13,16 @@
     "windows": [
       {
         "title": "DevGen",
-        "width": 380,
+        "width": 540,
         "height": 520,
         "visible": false,
-        "titleBarStyle": "Overlay",
+        "decorations": false,
         "transparent": true,
         "windowEffects": {
           "effects": [
             "underWindowBackground"
           ],
-          "radius": 12,
+          "radius": 8,
           "state": "active"
         },
         "minWidth": 340,
@@ -30,7 +30,7 @@
       }
     ],
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; img-src 'self' data: blob: asset:; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self' data:; connect-src 'self' ipc: http://ipc.localhost https://ipc.localhost; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
     },
     "macOSPrivateApi": true
   },

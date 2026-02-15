@@ -1,11 +1,14 @@
 pub mod datasets;
 mod generators;
+mod license;
 mod store;
 
 use generators::{
     registry::GeneratorRegistry, AppPreferences, GenerateRequest, GenerateResponse,
     GeneratorDefinition, GeneratorError, QuickGenerateResponse,
 };
+use license::LicenseManager;
+use std::collections::HashSet;
 use std::sync::Arc;
 use store::Store;
 use tauri::{
@@ -17,11 +20,16 @@ use tauri::{
 struct AppState {
     registry: GeneratorRegistry,
     store: Arc<Store>,
+    license: LicenseManager,
+    pro_generators: HashSet<String>,
 }
 
 #[tauri::command]
 fn list_generators(state: State<'_, AppState>) -> Vec<GeneratorDefinition> {
-    state.registry.list()
+    let access = state.license.resolve_access_tier(&state.store);
+    state
+        .registry
+        .list_with_access(&state.pro_generators, access.tier.is_pro())
 }
 
 #[tauri::command]
@@ -29,6 +37,16 @@ fn generate(
     state: State<'_, AppState>,
     req: GenerateRequest,
 ) -> Result<GenerateResponse, GeneratorError> {
+    if state.pro_generators.contains(&req.generator_id)
+        && !state
+            .license
+            .resolve_access_tier(&state.store)
+            .tier
+            .is_pro()
+    {
+        return Err(GeneratorError::LicenseRequired);
+    }
+
     let result = state.registry.generate(&req.generator_id, req.options)?;
 
     // Record history
@@ -78,6 +96,16 @@ fn quick_generate(
         }
     };
 
+    if state.pro_generators.contains(generator_id)
+        && !state
+            .license
+            .resolve_access_tier(&state.store)
+            .tier
+            .is_pro()
+    {
+        return Err(GeneratorError::LicenseRequired);
+    }
+
     let result = state.registry.generate(generator_id, options)?;
 
     // Record history
@@ -107,6 +135,71 @@ fn save_preferences(state: State<'_, AppState>, prefs: AppPreferences) -> Result
 }
 
 #[tauri::command]
+fn get_access_tier(state: State<'_, AppState>) -> Result<license::LicenseState, String> {
+    Ok(state.license.resolve_access_tier(&state.store))
+}
+
+#[derive(Debug, serde::Deserialize)]
+struct ActivateLicenseRequest {
+    key: String,
+    email: Option<String>,
+}
+
+#[tauri::command]
+fn activate_license(
+    state: State<'_, AppState>,
+    req: ActivateLicenseRequest,
+) -> Result<license::LicenseState, String> {
+    let next = state
+        .license
+        .activate(&state.store, &req.key, req.email.as_deref())?;
+    Ok(next)
+}
+
+#[tauri::command]
+fn validate_license(state: State<'_, AppState>) -> Result<license::LicenseState, String> {
+    let next = state.license.validate(&state.store)?;
+    Ok(next)
+}
+
+#[tauri::command]
+fn deactivate_license(state: State<'_, AppState>) -> Result<(), String> {
+    state.license.deactivate(&state.store)
+}
+
+#[tauri::command]
+fn open_checkout(state: State<'_, AppState>) -> Result<(), String> {
+    open_external_url(&state.license.checkout_url())
+}
+
+fn open_external_url(url: &str) -> Result<(), String> {
+    #[cfg(target_os = "macos")]
+    let mut cmd = {
+        let mut c = std::process::Command::new("open");
+        c.arg(url);
+        c
+    };
+
+    #[cfg(target_os = "windows")]
+    let mut cmd = {
+        let mut c = std::process::Command::new("cmd");
+        c.args(["/C", "start", "", url]);
+        c
+    };
+
+    #[cfg(all(unix, not(target_os = "macos")))]
+    let mut cmd = {
+        let mut c = std::process::Command::new("xdg-open");
+        c.arg(url);
+        c
+    };
+
+    cmd.spawn()
+        .map_err(|e| format!("Failed to open checkout URL: {}", e))?;
+    Ok(())
+}
+
+#[tauri::command]
 fn exit_app(app: tauri::AppHandle) {
     app.exit(0);
 }
@@ -128,12 +221,7 @@ fn rebuild_tray_quick_menu(app: tauri::AppHandle, quick: Vec<String>) -> Result<
 
         menu.append(&show_i).map_err(|e| e.to_string())?;
 
-        // Add separator
-        // Note: PredefinedMenuItem::separator(&app) might be needed, using stub for now if complex
-
-        // Add Quick Actions
         if !quick.is_empty() {
-            // For each quick action, add a menu item
             for action_id in quick {
                 let label = match action_id.as_str() {
                     "quick.copy_cpf_masked" => "CPF (Formatado)",
@@ -148,7 +236,6 @@ fn rebuild_tray_quick_menu(app: tauri::AppHandle, quick: Vec<String>) -> Result<
                     "quick.copy_password" => "Senha Segura",
                     "quick.copy_uuid" => "UUID v4",
                     "quick.copy_lorem_ipsum" => "Lorem Ipsum",
-                    // Fallback to ID if unknown
                     _ => action_id.as_str(),
                 };
 
@@ -182,6 +269,31 @@ fn show_main_window(app: &tauri::AppHandle, tray_click_position: Option<Physical
         let _ = window.show();
         let _ = window.set_focus();
     }
+}
+
+fn pro_generators() -> HashSet<String> {
+    [
+        "person",
+        "company",
+        "vehicle",
+        "vehicle_plate",
+        "bank_account",
+        "credit_card",
+        "cnh",
+        "pis",
+        "titulo_eleitor",
+        "renavam",
+        "inscricao_estadual",
+        "certidao_nascimento",
+        "certidao_casamento",
+        "certidao_obito",
+        "curriculum",
+        "lorem_pixel",
+        "meta_tags",
+    ]
+    .into_iter()
+    .map(|s| s.to_string())
+    .collect()
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -219,13 +331,17 @@ pub fn run() {
     registry.register(crate::generators::impls::MetaTagsGenerator);
 
     tauri::Builder::default()
-        .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
             list_generators,
             generate,
             quick_generate,
             get_preferences,
             save_preferences,
+            get_access_tier,
+            activate_license,
+            validate_license,
+            deactivate_license,
+            open_checkout,
             exit_app,
             rebuild_tray_quick_menu
         ])
@@ -234,7 +350,14 @@ pub fn run() {
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
             let store = Arc::new(Store::new(app.app_handle()));
-            app.manage(AppState { registry, store });
+            let license = LicenseManager::from_env();
+            let pro_generators = pro_generators();
+            app.manage(AppState {
+                registry,
+                store,
+                license,
+                pro_generators,
+            });
 
             if let Some(window) = app.get_webview_window("main") {
                 let _ = window.set_always_on_top(true);
@@ -321,45 +444,47 @@ pub fn run() {
                 .menu(&menu)
                 .show_menu_on_left_click(false)
                 .on_menu_event(|app, event| match event.id.as_ref() {
-                    "quit" => {
-                        app.exit(0);
+                    "show" => show_main_window(app, None),
+                    "quit" => app.exit(0),
+                    id if id.starts_with("quick.") => {
+                        let action_id = id.to_string();
+                        let app_handle = app.clone();
+                        tauri::async_runtime::spawn(async move {
+                            let _ = app_handle.emit("quick-action", action_id);
+                        });
                     }
-                    "show" => {
-                        show_main_window(app, None);
-                    }
-                    action_id => {
-                        // Assuming this is a quick action, emit it to the frontend
-                        // The frontend will handle the generation and copying to clipboard
-                        if let Some(window) = app.get_webview_window("main") {
-                            let _ = window.emit("quick-action", action_id);
-                        }
-                    }
+                    _ => {}
                 })
-                .on_tray_icon_event(|tray, event| {
-                    if let TrayIconEvent::Click {
+                .on_tray_icon_event(|tray, event| match event {
+                    TrayIconEvent::Click {
                         button: MouseButton::Left,
-                        button_state: MouseButtonState::Up,
+                        button_state: MouseButtonState::Down,
                         position,
                         ..
-                    } = event
-                    {
-                        let app = tray.app_handle();
-                        show_main_window(&app, Some(position));
-                    }
+                    } => show_main_window(&tray.app_handle(), Some(position)),
+                    _ => {}
                 })
                 .build(app)?;
 
+            if let Some(window) = app.get_webview_window("main") {
+                let app_handle = app.app_handle().clone();
+                let _ = window.on_window_event(move |event| match event {
+                    tauri::WindowEvent::CloseRequested { api, .. } => {
+                        api.prevent_close();
+                        if let Some(w) = app_handle.get_webview_window("main") {
+                            let _ = w.hide();
+                        }
+                    }
+                    tauri::WindowEvent::Focused(false) => {
+                        if let Some(w) = app_handle.get_webview_window("main") {
+                            let _ = w.hide();
+                        }
+                    }
+                    _ => {}
+                });
+            }
+
             Ok(())
-        })
-        .on_window_event(|window, event| match event {
-            tauri::WindowEvent::CloseRequested { api, .. } => {
-                let _ = window.hide();
-                api.prevent_close();
-            }
-            tauri::WindowEvent::Focused(false) => {
-                let _ = window.hide();
-            }
-            _ => {}
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

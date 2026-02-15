@@ -17,6 +17,7 @@ impl Generator for VehicleGenerator {
             category: GeneratorCategory::Vehicle,
             description: "Gera dados completos de um veículo (Marca, Modelo, Placa, Renavam, etc)."
                 .into(),
+            requires_pro: false,
             options: Some(json!({
                 "fields": [
                     {

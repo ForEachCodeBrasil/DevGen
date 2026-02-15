@@ -13,6 +13,7 @@ impl Generator for CreditCardGenerator {
             name: "Cartão de Crédito".into(),
             category: GeneratorCategory::Utilities,
             description: "Gera números de cartão de crédito válidos (Luhn) para testes.".into(),
+            requires_pro: false,
             options: Some(json!({
                 "fields": [
                     {

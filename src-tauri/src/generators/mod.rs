@@ -1,3 +1,4 @@
+use crate::license::LicenseState;
 use serde::{Deserialize, Serialize};
 
 pub mod impls;
@@ -20,6 +21,7 @@ pub struct GeneratorDefinition {
     pub name: String,
     pub category: GeneratorCategory,
     pub description: String,
+    pub requires_pro: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub options: Option<serde_json::Value>,
 }
@@ -41,6 +43,7 @@ pub struct GenerateResponse {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum GeneratorError {
     NotFound,
+    LicenseRequired,
     InvalidOptions(String),
     Internal(String),
 }
@@ -50,6 +53,7 @@ impl std::fmt::Display for GeneratorError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             GeneratorError::NotFound => write!(f, "Gerador não encontrado"),
+            GeneratorError::LicenseRequired => write!(f, "Recurso disponível apenas no DevGen Pro"),
             GeneratorError::InvalidOptions(msg) => write!(f, "Opções inválidas: {}", msg),
             GeneratorError::Internal(msg) => write!(f, "Erro interno: {}", msg),
         }
@@ -62,6 +66,8 @@ pub struct AppPreferences {
     pub quick_actions: Vec<String>,
     pub history: Vec<String>, // TODO: Define specific HistoryItem struct later
     pub generator_last_options: std::collections::HashMap<String, serde_json::Value>,
+    #[serde(default)]
+    pub license_state: LicenseState,
 }
 
 impl Default for AppPreferences {
@@ -77,6 +83,7 @@ impl Default for AppPreferences {
             ],
             history: vec![],
             generator_last_options: std::collections::HashMap::new(),
+            license_state: LicenseState::default(),
         }
     }
 }

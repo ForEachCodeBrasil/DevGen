@@ -14,6 +14,7 @@ impl Generator for CurriculumGenerator {
             name: "Gerador de Currículo".into(),
             category: GeneratorCategory::Person,
             description: "Gera um currículo básico em Markdown.".into(),
+            requires_pro: false,
             options: Some(json!({
                 "fields": [
                     {
@@ -96,7 +97,7 @@ impl Generator for CurriculumGenerator {
         let cv = format!(
             "# {}
 
-**{}**: {} years | **{}**
+**{}**: {} years | **{} - {}**
 **Email**: {} | **Phone**: {}
 
 ## {}
@@ -114,7 +115,8 @@ impl Generator for CurriculumGenerator {
             name,
             if lang == "English" { "Age" } else { "Idade" },
             age,
-            format!("{} - {}", city, state),
+            city,
+            state,
             email,
             phone,
             obj_title,

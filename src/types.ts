@@ -10,6 +10,7 @@ export interface GeneratorDefinition {
     name: string;
     category: GeneratorCategory;
     description: string;
+    requires_pro: boolean;
     options?: Record<string, any>; // JSON Schema or similar
 }
 
@@ -33,8 +34,28 @@ export interface AppPreferences {
     quick_actions: string[];
     history: string[]; // TODO: Define specific HistoryItem struct later
     generator_last_options: Record<string, any>;
+    license_state: LicenseState;
 }
 
 export interface QuickGenerateResponse {
     text: string;
+}
+
+export type AccessTier = 'free' | 'pro';
+
+export type LicenseStatus =
+    | 'active'
+    | 'inactive'
+    | 'expired'
+    | 'disabled'
+    | 'invalid'
+    | 'unknown';
+
+export interface LicenseState {
+    tier: AccessTier;
+    status: LicenseStatus;
+    license_key?: string | null;
+    instance_id?: string | null;
+    customer_email?: string | null;
+    last_validated_at?: string | null;
 }

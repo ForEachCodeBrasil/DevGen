@@ -16,6 +16,7 @@ impl Generator for CompanyGenerator {
             category: GeneratorCategory::Company,
             description: "Gera dados completos de uma empresa (Razão Social, CNPJ, IE, etc)."
                 .into(),
+            requires_pro: false,
             options: Some(json!({
                 "fields": [
                     {
