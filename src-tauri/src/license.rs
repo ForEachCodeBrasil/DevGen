@@ -1,7 +1,7 @@
 use crate::store::Store;
 use chrono::{DateTime, Duration, Utc};
 use lycento_sdk::{
-    ActivateOptions, LycentoClient, LycentoConfig, ValidateOptions, DeactivateOptions,
+    ActivateOptions, DeactivateOptions, LycentoClient, LycentoConfig, ValidateOptions,
 };
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -79,8 +79,7 @@ impl LicenseManager {
             config = config.with_api_key(&key);
         }
 
-        let client = LycentoClient::new(config)
-            .expect("Failed to create Lycento client");
+        let client = LycentoClient::new(config).expect("Failed to create Lycento client");
 
         Self {
             client: Arc::new(client),
@@ -123,7 +122,10 @@ impl LicenseManager {
     ) -> Result<LicenseState, String> {
         let options = ActivateOptions::new(key);
 
-        let response = self.client.activate(options).await
+        let response = self
+            .client
+            .activate(options)
+            .await
             .map_err(|e| format!("Failed to activate license: {}", e.message()))?;
 
         let next = LicenseState {
@@ -161,7 +163,10 @@ impl LicenseManager {
 
         let options = ValidateOptions::new(&key).with_device_id(&device_id);
 
-        let response = self.client.validate(options).await
+        let response = self
+            .client
+            .validate(options)
+            .await
             .map_err(|e| format!("Failed to validate license: {}", e.message()))?;
 
         let mut next = current;

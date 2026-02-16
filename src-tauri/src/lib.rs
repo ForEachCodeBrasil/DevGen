@@ -152,7 +152,8 @@ async fn activate_license(
 ) -> Result<license::LicenseState, String> {
     let next = state
         .license
-        .activate(&state.store, &req.key, req.email.as_deref()).await?;
+        .activate(&state.store, &req.key, req.email.as_deref())
+        .await?;
     Ok(next)
 }
 
