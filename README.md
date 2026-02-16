@@ -44,13 +44,13 @@ Generated artifacts:
 - macOS release workflow: `.github/workflows/release-macos.yml`
 - Signing and notarization checklist: `docs/release-macos-checklist.md`
 
-## Lemon License Configuration
+## Lycento License Configuration
 
 Set these environment variables before running/building the desktop app:
 
-- `DEVGEN_LEMON_CHECKOUT_URL` (required for purchase button)
-- `DEVGEN_LEMON_STORE_ID` (optional but recommended)
-- `DEVGEN_LEMON_PRODUCT_ID` (optional but recommended)
-- `DEVGEN_LEMON_VARIANT_ID` (optional)
-- `DEVGEN_LEMON_INSTANCE_NAME` (optional, default: `devgen-desktop`)
-- `DEVGEN_LEMON_GRACE_DAYS` (optional, default: `7`)
+- `LYCENTO_BASE_URL` (required, e.g., `https://lycento.test` or `https://api.lycento.com`)
+- `LYCENTO_API_KEY` (optional, for authenticated requests)
+- `LYCENTO_CHECKOUT_URL` (required for purchase button)
+- `LYCENTO_GRACE_DAYS` (optional, default: `7`)
+
+Create a `.env` file in the project root with these variables. See `.env.example` for reference.

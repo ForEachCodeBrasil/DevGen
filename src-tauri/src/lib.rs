@@ -146,25 +146,25 @@ struct ActivateLicenseRequest {
 }
 
 #[tauri::command]
-fn activate_license(
+async fn activate_license(
     state: State<'_, AppState>,
     req: ActivateLicenseRequest,
 ) -> Result<license::LicenseState, String> {
     let next = state
         .license
-        .activate(&state.store, &req.key, req.email.as_deref())?;
+        .activate(&state.store, &req.key, req.email.as_deref()).await?;
     Ok(next)
 }
 
 #[tauri::command]
-fn validate_license(state: State<'_, AppState>) -> Result<license::LicenseState, String> {
-    let next = state.license.validate(&state.store)?;
+async fn validate_license(state: State<'_, AppState>) -> Result<license::LicenseState, String> {
+    let next = state.license.validate(&state.store).await?;
     Ok(next)
 }
 
 #[tauri::command]
-fn deactivate_license(state: State<'_, AppState>) -> Result<(), String> {
-    state.license.deactivate(&state.store)
+async fn deactivate_license(state: State<'_, AppState>) -> Result<(), String> {
+    state.license.deactivate(&state.store).await
 }
 
 #[tauri::command]
@@ -298,6 +298,8 @@ fn pro_generators() -> HashSet<String> {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let _ = dotenvy::dotenv();
+
     let registry = GeneratorRegistry::new();
 
     // Register generators

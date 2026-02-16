@@ -1,11 +1,10 @@
 use crate::store::Store;
 use chrono::{DateTime, Duration, Utc};
-use reqwest::blocking::Client;
+use lycento_sdk::{
+    ActivateOptions, LycentoClient, LycentoConfig, ValidateOptions, DeactivateOptions,
+};
 use serde::{Deserialize, Serialize};
-
-const LEMON_ACTIVATE_URL: &str = "https://api.lemonsqueezy.com/v1/licenses/activate";
-const LEMON_VALIDATE_URL: &str = "https://api.lemonsqueezy.com/v1/licenses/validate";
-const LEMON_DEACTIVATE_URL: &str = "https://api.lemonsqueezy.com/v1/licenses/deactivate";
+use std::sync::Arc;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -56,99 +55,36 @@ impl Default for LicenseState {
 
 #[derive(Debug, Clone)]
 pub struct LicenseManager {
-    client: Client,
+    client: Arc<LycentoClient>,
     checkout_url: String,
-    store_id: Option<u64>,
-    product_id: Option<u64>,
-    variant_id: Option<u64>,
-    instance_name: String,
     grace_days: i64,
-}
-
-#[derive(Debug, Deserialize)]
-struct LemonMeta {
-    store_id: u64,
-    product_id: u64,
-    variant_id: u64,
-    customer_email: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
-struct LemonActivation {
-    activated: bool,
-    instance: LemonInstance,
-    #[serde(default)]
-    error: Option<String>,
-    #[serde(default)]
-    meta: Option<LemonMeta>,
-}
-
-#[derive(Debug, Deserialize)]
-struct LemonInstance {
-    id: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct LemonValidation {
-    valid: bool,
-    #[serde(default)]
-    error: Option<String>,
-    #[serde(default)]
-    license_key: Option<LemonLicenseKey>,
-    #[serde(default)]
-    meta: Option<LemonMeta>,
-}
-
-#[derive(Debug, Deserialize)]
-struct LemonLicenseKey {
-    status: String,
-}
-
-#[derive(Debug, Serialize)]
-struct ActivatePayload<'a> {
-    license_key: &'a str,
-    instance_name: &'a str,
-}
-
-#[derive(Debug, Serialize)]
-struct ValidatePayload<'a> {
-    license_key: &'a str,
-    instance_id: &'a str,
-}
-
-#[derive(Debug, Serialize)]
-struct DeactivatePayload<'a> {
-    license_key: &'a str,
-    instance_id: &'a str,
 }
 
 impl LicenseManager {
     pub fn from_env() -> Self {
-        let checkout_url = std::env::var("DEVGEN_LEMON_CHECKOUT_URL")
-            .unwrap_or_else(|_| "https://lemonsqueezy.com".to_string());
-        let store_id = std::env::var("DEVGEN_LEMON_STORE_ID")
-            .ok()
-            .and_then(|v| v.parse::<u64>().ok());
-        let product_id = std::env::var("DEVGEN_LEMON_PRODUCT_ID")
-            .ok()
-            .and_then(|v| v.parse::<u64>().ok());
-        let variant_id = std::env::var("DEVGEN_LEMON_VARIANT_ID")
-            .ok()
-            .and_then(|v| v.parse::<u64>().ok());
-        let instance_name = std::env::var("DEVGEN_LEMON_INSTANCE_NAME")
-            .unwrap_or_else(|_| "devgen-desktop".to_string());
-        let grace_days = std::env::var("DEVGEN_LEMON_GRACE_DAYS")
+        let _ = dotenvy::dotenv();
+
+        let base_url = std::env::var("LYCENTO_BASE_URL")
+            .unwrap_or_else(|_| "https://lycento.test".to_string());
+        let api_key = std::env::var("LYCENTO_API_KEY").ok();
+        let checkout_url = std::env::var("LYCENTO_CHECKOUT_URL")
+            .unwrap_or_else(|_| format!("{}/checkout", base_url));
+        let grace_days = std::env::var("LYCENTO_GRACE_DAYS")
             .ok()
             .and_then(|v| v.parse::<i64>().ok())
             .unwrap_or(7);
 
+        let mut config = LycentoConfig::new(&base_url);
+        if let Some(key) = api_key {
+            config = config.with_api_key(&key);
+        }
+
+        let client = LycentoClient::new(config)
+            .expect("Failed to create Lycento client");
+
         Self {
-            client: Client::new(),
+            client: Arc::new(client),
             checkout_url,
-            store_id,
-            product_id,
-            variant_id,
-            instance_name,
             grace_days,
         }
     }
@@ -179,53 +115,23 @@ impl LicenseManager {
         state
     }
 
-    pub fn activate(
+    pub async fn activate(
         &self,
         store: &Store,
         key: &str,
         email: Option<&str>,
     ) -> Result<LicenseState, String> {
-        let payload = ActivatePayload {
-            license_key: key,
-            instance_name: &self.instance_name,
-        };
+        let options = ActivateOptions::new(key);
 
-        let response = self
-            .client
-            .post(LEMON_ACTIVATE_URL)
-            .json(&payload)
-            .send()
-            .map_err(|e| format!("Failed to activate license: {}", e))?;
+        let response = self.client.activate(options).await
+            .map_err(|e| format!("Failed to activate license: {}", e.message()))?;
 
-        if !response.status().is_success() {
-            return Err(format!(
-                "License activation failed with status {}",
-                response.status()
-            ));
-        }
-
-        let data: LemonActivation = response
-            .json()
-            .map_err(|e| format!("Failed to decode activation response: {}", e))?;
-
-        if !data.activated {
-            return Err(data
-                .error
-                .unwrap_or_else(|| "License key was not activated".to_string()));
-        }
-
-        if let Some(meta) = &data.meta {
-            self.assert_meta(meta)?;
-        }
-
-        let mut next = LicenseState {
+        let next = LicenseState {
             tier: AccessTier::Pro,
             status: LicenseStatus::Active,
-            license_key: Some(key.to_string()),
-            instance_id: Some(data.instance.id),
-            customer_email: email
-                .map(|v| v.to_string())
-                .or_else(|| data.meta.and_then(|m| m.customer_email)),
+            license_key: Some(response.license.key),
+            instance_id: Some(response.activation.device_id),
+            customer_email: email.map(|v| v.to_string()),
             last_validated_at: Some(Utc::now().to_rfc3339()),
         };
 
@@ -233,11 +139,11 @@ impl LicenseManager {
             p.license_state = next.clone();
         })?;
 
-        next = self.resolve_access_tier(store);
-        Ok(next)
+        let resolved = self.resolve_access_tier(store);
+        Ok(resolved)
     }
 
-    pub fn validate(&self, store: &Store) -> Result<LicenseState, String> {
+    pub async fn validate(&self, store: &Store) -> Result<LicenseState, String> {
         let prefs = store.get()?;
         let current = prefs.license_state;
 
@@ -247,51 +153,26 @@ impl LicenseManager {
             return Ok(next);
         };
 
-        let Some(instance_id) = current.instance_id.clone() else {
+        let Some(device_id) = current.instance_id.clone() else {
             let next = LicenseState::default();
             store.update(|p| p.license_state = next.clone())?;
             return Ok(next);
         };
 
-        let payload = ValidatePayload {
-            license_key: &key,
-            instance_id: &instance_id,
-        };
+        let options = ValidateOptions::new(&key).with_device_id(&device_id);
 
-        let response = self
-            .client
-            .post(LEMON_VALIDATE_URL)
-            .json(&payload)
-            .send()
-            .map_err(|e| format!("Failed to validate license: {}", e))?;
-
-        if !response.status().is_success() {
-            return Err(format!(
-                "License validation failed with status {}",
-                response.status()
-            ));
-        }
-
-        let data: LemonValidation = response
-            .json()
-            .map_err(|e| format!("Failed to decode validation response: {}", e))?;
-
-        if let Some(meta) = &data.meta {
-            self.assert_meta(meta)?;
-        }
+        let response = self.client.validate(options).await
+            .map_err(|e| format!("Failed to validate license: {}", e.message()))?;
 
         let mut next = current;
         next.last_validated_at = Some(Utc::now().to_rfc3339());
 
-        if data.valid {
+        if response.valid {
             next.tier = AccessTier::Pro;
             next.status = LicenseStatus::Active;
-            if let Some(meta) = data.meta {
-                next.customer_email = meta.customer_email.or(next.customer_email);
-            }
         } else {
             next.tier = AccessTier::Free;
-            next.status = Self::status_from_error(data.error, data.license_key.as_ref());
+            next.status = Self::status_from_license(&response.license);
         }
 
         store.update(|p| {
@@ -301,19 +182,15 @@ impl LicenseManager {
         Ok(next)
     }
 
-    pub fn deactivate(&self, store: &Store) -> Result<(), String> {
+    pub async fn deactivate(&self, store: &Store) -> Result<(), String> {
         let prefs = store.get()?;
         let current = prefs.license_state;
 
-        if let (Some(key), Some(instance_id)) =
+        if let (Some(key), Some(device_id)) =
             (current.license_key.as_ref(), current.instance_id.as_ref())
         {
-            let payload = DeactivatePayload {
-                license_key: key,
-                instance_id,
-            };
-
-            let _ = self.client.post(LEMON_DEACTIVATE_URL).json(&payload).send();
+            let options = DeactivateOptions::new(key, device_id);
+            let _ = self.client.deactivate(options).await;
         }
 
         store.update(|p| {
@@ -321,46 +198,13 @@ impl LicenseManager {
         })
     }
 
-    fn assert_meta(&self, meta: &LemonMeta) -> Result<(), String> {
-        if let Some(expected_store) = self.store_id {
-            if meta.store_id != expected_store {
-                return Err("License does not belong to configured store".to_string());
-            }
-        }
-
-        if let Some(expected_product) = self.product_id {
-            if meta.product_id != expected_product {
-                return Err("License does not belong to configured product".to_string());
-            }
-        }
-
-        if let Some(expected_variant) = self.variant_id {
-            if meta.variant_id != expected_variant {
-                return Err("License does not belong to configured variant".to_string());
-            }
-        }
-
-        Ok(())
-    }
-
-    fn status_from_error(
-        error: Option<String>,
-        key_data: Option<&LemonLicenseKey>,
-    ) -> LicenseStatus {
-        if let Some(v) = key_data {
-            return match v.status.as_str() {
-                "active" => LicenseStatus::Active,
-                "inactive" => LicenseStatus::Inactive,
-                "expired" => LicenseStatus::Expired,
-                "disabled" => LicenseStatus::Disabled,
-                _ => LicenseStatus::Unknown,
-            };
-        }
-
-        match error.unwrap_or_default().to_lowercase().as_str() {
-            e if e.contains("expired") => LicenseStatus::Expired,
-            e if e.contains("disabled") => LicenseStatus::Disabled,
-            e if e.contains("invalid") => LicenseStatus::Invalid,
+    fn status_from_license(license: &lycento_sdk::LicenseInfo) -> LicenseStatus {
+        match license.status.as_str() {
+            "active" => LicenseStatus::Active,
+            "inactive" => LicenseStatus::Inactive,
+            "expired" => LicenseStatus::Expired,
+            "revoked" | "disabled" => LicenseStatus::Disabled,
+            "invalid" => LicenseStatus::Invalid,
             _ => LicenseStatus::Unknown,
         }
     }
