@@ -2025,7 +2025,9 @@ checksum = "112b39cec0b298b6c1999fee3e31427f74f676e4cb9879ed1a121b43661a4154"
 
 [[package]]
 name = "lycento-sdk"
-version = "1.0.0"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bd97e2008ae4cde84d152a7d306f7163daff4edd631f604589ae5a631e4b5077"
 dependencies = [
  "anyhow",
  "chrono",

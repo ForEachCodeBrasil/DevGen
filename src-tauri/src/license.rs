@@ -75,8 +75,8 @@ impl LicenseManager {
             .unwrap_or(7);
 
         let mut config = LycentoConfig::new(&base_url);
-        if let Some(key) = api_key {
-            config = config.with_api_key(&key);
+        if let Some(ref key) = api_key {
+            config = config.with_api_key(key);
         }
 
         let client = LycentoClient::new(config).expect("Failed to create Lycento client");
@@ -121,7 +121,6 @@ impl LicenseManager {
         email: Option<&str>,
     ) -> Result<LicenseState, String> {
         let options = ActivateOptions::new(key);
-
         let response = self
             .client
             .activate(options)
