@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useGeneratorsStore } from '../stores/generators'
 import { ArrowLeft, Play, Copy, Check, Loader2 } from 'lucide-vue-next'
 import { useClipboard } from '@vueuse/core'
+import { getErrorMessage } from '../utils/error'
 
 const route = useRoute()
 const router = useRouter()
@@ -46,7 +47,7 @@ async function handleGenerate() {
     const response = await store.generate({ generator_id: generatorId, options: options.value })
     if (response.text) result.value = response.text
   } catch (e: unknown) {
-    error.value = (e as Error).message
+    error.value = getErrorMessage(e)
   } finally {
     loading.value = false
   }
