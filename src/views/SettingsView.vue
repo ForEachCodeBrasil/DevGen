@@ -3,7 +3,8 @@ import { onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { usePreferencesStore } from '../stores/preferences'
 import { useI18n } from 'vue-i18n'
-import { ArrowLeft } from 'lucide-vue-next'
+import { ArrowLeft, Loader2 } from 'lucide-vue-next'
+import { getErrorMessage } from '../utils/error'
 
 const router = useRouter()
 const store = usePreferencesStore()
@@ -32,7 +33,7 @@ async function handleOpenCheckout() {
   try {
     await store.openCheckout()
   } catch (e: unknown) {
-    licenseError.value = (e as Error).message
+    licenseError.value = getErrorMessage(e)
   }
 }
 
@@ -48,7 +49,7 @@ async function handleActivate() {
     await store.activateLicense(licenseKey.value.trim(), licenseEmail.value.trim() || undefined)
     licenseMessage.value = 'Licença ativada com sucesso.'
   } catch (e: unknown) {
-    licenseError.value = (e as Error).message
+    licenseError.value = getErrorMessage(e)
   }
 }
 
@@ -59,7 +60,7 @@ async function handleValidate() {
     await store.validateLicense()
     licenseMessage.value = 'Licença validada.'
   } catch (e: unknown) {
-    licenseError.value = (e as Error).message
+    licenseError.value = getErrorMessage(e)
   }
 }
 
@@ -72,7 +73,7 @@ async function handleDeactivate() {
     licenseKey.value = ''
     licenseEmail.value = ''
   } catch (e: unknown) {
-    licenseError.value = (e as Error).message
+    licenseError.value = getErrorMessage(e)
   }
 }
 </script>
@@ -170,13 +171,19 @@ async function handleDeactivate() {
             @click="handleActivate"
             :disabled="store.licenseLoading"
             class="btn btn-secondary px-3 py-1.5 text-xs flex-1"
+            type="button"
           >
-            ACTIVATE
+            <span v-if="store.licenseLoading" class="inline-flex items-center gap-2">
+              <Loader2 class="w-3 h-3 animate-spin" />
+              PROCESSING...
+            </span>
+            <span v-else>ACTIVATE</span>
           </button>
           <button
             @click="handleValidate"
             :disabled="store.licenseLoading"
             class="btn btn-secondary px-3 py-1.5 text-xs flex-1"
+            type="button"
           >
             VALIDATE
           </button>
@@ -187,6 +194,7 @@ async function handleDeactivate() {
             @click="handleDeactivate"
             :disabled="store.licenseLoading"
             class="btn btn-danger w-full px-3 py-1.5 text-xs"
+            type="button"
           >
             DEACTIVATE_DEVICE
           </button>
