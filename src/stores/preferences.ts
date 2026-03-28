@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { invoke } from '@tauri-apps/api/core'
 import type { AppPreferences, LicenseState } from '../types'
 import i18n from '../i18n'
+import { normalizeLicenseKey } from '../utils/license'
 
 export const usePreferencesStore = defineStore('preferences', {
     state: () => ({
@@ -63,7 +64,7 @@ export const usePreferencesStore = defineStore('preferences', {
             this.licenseLoading = true
             try {
                 const next = await invoke<LicenseState>('activate_license', {
-                    req: { key, email: email || null }
+                    req: { key: normalizeLicenseKey(key), email: email || null }
                 })
                 if (this.preferences) {
                     this.preferences = {
