@@ -4,6 +4,7 @@ on:
   pull_request:
   push:
     branches:
+      - main
       - master
 
 jobs:
@@ -24,8 +25,12 @@ jobs:
         with:
           components: rustfmt, clippy
 
+      # Reproducible install from committed lockfile (supply-chain baseline).
       - name: Install frontend dependencies
         run: npm ci
+
+      - name: Audit npm dependencies
+        run: npm audit --audit-level=high
 
       - name: Typecheck frontend
         run: npm run typecheck
