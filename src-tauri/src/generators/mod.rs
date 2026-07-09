@@ -74,12 +74,13 @@ impl Default for AppPreferences {
     fn default() -> Self {
         Self {
             locale: "pt-BR".into(),
+            // Defaults stay on free-tier utilities so tray works without Pro.
             quick_actions: vec![
-                "quick.copy_cpf_masked".into(),
-                "quick.copy_cnpj_masked".into(),
-                "quick.copy_person_full".into(),
-                "quick.copy_credit_card".into(),
+                "quick.copy_uuid".into(),
                 "quick.copy_password".into(),
+                "quick.copy_lorem_ipsum".into(),
+                "quick.copy_nick".into(),
+                "quick.copy_random_number".into(),
             ],
             history: vec![],
             generator_last_options: std::collections::HashMap::new(),

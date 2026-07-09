@@ -88,6 +88,9 @@ fn quick_generate(
         ),
         "quick.copy_uuid" => ("uuid", serde_json::json!({ "hyphens": true })),
         "quick.copy_lorem_ipsum" => ("lorem_ipsum", serde_json::json!({ "paragraphs": 1 })),
+        "quick.copy_nick" => ("nick", serde_json::json!({})),
+        "quick.copy_random_number" => ("random_number", serde_json::json!({ "length": 8 })),
+        "quick.copy_name" => ("name", serde_json::json!({})),
         _ => {
             return Err(GeneratorError::InvalidOptions(format!(
                 "Unknown action: {}",
@@ -237,6 +240,9 @@ fn rebuild_tray_quick_menu(app: tauri::AppHandle, quick: Vec<String>) -> Result<
                     "quick.copy_password" => "Senha Segura",
                     "quick.copy_uuid" => "UUID v4",
                     "quick.copy_lorem_ipsum" => "Lorem Ipsum",
+                    "quick.copy_nick" => "Nick / Apelido",
+                    "quick.copy_random_number" => "Número Aleatório",
+                    "quick.copy_name" => "Nome de Pessoa",
                     _ => action_id.as_str(),
                 };
 
@@ -272,23 +278,35 @@ fn show_main_window(app: &tauri::AppHandle, tray_click_position: Option<Physical
     }
 }
 
+/// Free tier (not in this set): uuid, password, lorem_ipsum, random_number,
+/// nick, qrcode, name — small daily utilities that do not unlock BR form flows.
+///
+/// Everything else requires DevGen Pro (docs BR, entity packs, payments).
 fn pro_generators() -> HashSet<String> {
     [
-        "person",
-        "company",
-        "vehicle",
-        "vehicle_plate",
-        "bank_account",
-        "credit_card",
+        // Documents BR (core conversion drivers)
+        "cpf",
+        "cnpj",
+        "cep",
+        "rg",
         "cnh",
         "pis",
         "titulo_eleitor",
-        "renavam",
         "inscricao_estadual",
         "certidao_nascimento",
         "certidao_casamento",
         "certidao_obito",
+        // Entity packs
+        "person",
+        "company",
+        "vehicle",
+        "vehicle_plate",
+        "renavam",
         "curriculum",
+        // Finance / KYC helpers
+        "bank_account",
+        "credit_card",
+        // Premium utilities
         "lorem_pixel",
         "meta_tags",
     ]
@@ -371,35 +389,8 @@ pub fn run() {
             let sep2 = PredefinedMenuItem::separator(app)?;
             let quit_i = MenuItem::with_id(app, "quit", "Sair", true, None::<&str>)?;
 
-            // Quick actions for tray menu (CodexBar-style)
-            let cpf_masked = MenuItem::with_id(
-                app,
-                "quick.copy_cpf_masked",
-                "CPF (Formatado)",
-                true,
-                None::<&str>,
-            )?;
-            let cpf_unmasked = MenuItem::with_id(
-                app,
-                "quick.copy_cpf_unmasked",
-                "CPF (Números)",
-                true,
-                None::<&str>,
-            )?;
-            let cnpj_masked = MenuItem::with_id(
-                app,
-                "quick.copy_cnpj_masked",
-                "CNPJ (Formatado)",
-                true,
-                None::<&str>,
-            )?;
-            let cnpj_unmasked = MenuItem::with_id(
-                app,
-                "quick.copy_cnpj_unmasked",
-                "CNPJ (Números)",
-                true,
-                None::<&str>,
-            )?;
+            // Free-tier quick actions for tray (Pro items stay available after license
+            // via rebuild_tray_quick_menu / preferences).
             let uuid_item =
                 MenuItem::with_id(app, "quick.copy_uuid", "UUID v4", true, None::<&str>)?;
             let password_item = MenuItem::with_id(
@@ -416,27 +407,29 @@ pub fn run() {
                 true,
                 None::<&str>,
             )?;
-            let credit_card_item = MenuItem::with_id(
+            let nick_item =
+                MenuItem::with_id(app, "quick.copy_nick", "Nick / Apelido", true, None::<&str>)?;
+            let random_item = MenuItem::with_id(
                 app,
-                "quick.copy_credit_card",
-                "Cartão de Crédito",
+                "quick.copy_random_number",
+                "Número Aleatório",
                 true,
                 None::<&str>,
             )?;
+            let name_item =
+                MenuItem::with_id(app, "quick.copy_name", "Nome de Pessoa", true, None::<&str>)?;
 
             let generate_submenu = Submenu::with_items(
                 app,
                 "Gerar...",
                 true,
                 &[
-                    &cpf_masked,
-                    &cpf_unmasked,
-                    &cnpj_masked,
-                    &cnpj_unmasked,
                     &uuid_item,
                     &password_item,
-                    &credit_card_item,
                     &lorem_item,
+                    &nick_item,
+                    &random_item,
+                    &name_item,
                 ],
             )?;
 
@@ -469,20 +462,22 @@ pub fn run() {
                     }
                     _ => {}
                 })
-                .on_tray_icon_event(|tray, event| match event {
-                    TrayIconEvent::Click {
+                .on_tray_icon_event(|tray, event| {
+                    if let TrayIconEvent::Click {
                         button: MouseButton::Left,
                         button_state: MouseButtonState::Down,
                         position,
                         ..
-                    } => show_main_window(&tray.app_handle(), Some(position)),
-                    _ => {}
+                    } = event
+                    {
+                        show_main_window(tray.app_handle(), Some(position));
+                    }
                 })
                 .build(app)?;
 
             if let Some(window) = app.get_webview_window("main") {
                 let app_handle = app.app_handle().clone();
-                let _ = window.on_window_event(move |event| match event {
+                window.on_window_event(move |event| match event {
                     tauri::WindowEvent::CloseRequested { api, .. } => {
                         api.prevent_close();
                         if let Some(w) = app_handle.get_webview_window("main") {

@@ -68,7 +68,8 @@ impl Generator for CompanyGenerator {
         let cnpj_gen = CnpjGenerator;
         let ie_gen = InscricaoEstadualGenerator;
 
-        let cnpj_res = cnpj_gen.generate(json!({ "mask": mask }))?;
+        // Prefer alphanumeric CNPJ (RFB 2026); still valid under ASCII−48 DV rules.
+        let cnpj_res = cnpj_gen.generate(json!({ "mask": mask, "format": "alphanumeric" }))?;
         let ie_res = ie_gen.generate(json!({ "mask": mask, "state": state }))?;
 
         // 4. Contact

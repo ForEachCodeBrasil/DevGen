@@ -60,15 +60,38 @@ pub struct LicenseManager {
     grace_days: i64,
 }
 
+fn default_base_url(is_debug: bool) -> &'static str {
+    if is_debug {
+        "https://lycento.test/"
+    } else {
+        "https://lycento.tech/"
+    }
+}
+
+fn normalize_base_url(base_url: &str) -> String {
+    base_url.trim_end_matches('/').to_string()
+}
+
+fn resolve_base_url(raw: Option<String>, is_debug: bool) -> String {
+    let fallback = default_base_url(is_debug);
+    normalize_base_url(raw.as_deref().unwrap_or(fallback))
+}
+
+fn resolve_checkout_url(raw: Option<String>, base_url: &str) -> String {
+    raw.unwrap_or_else(|| format!("{}/checkout", normalize_base_url(base_url)))
+}
+
 impl LicenseManager {
     pub fn from_env() -> Self {
         let _ = dotenvy::dotenv();
 
-        let base_url = std::env::var("LYCENTO_BASE_URL")
-            .unwrap_or_else(|_| "https://lycento.test".to_string());
+        let base_url = resolve_base_url(
+            std::env::var("LYCENTO_BASE_URL").ok(),
+            cfg!(debug_assertions),
+        );
         let api_key = std::env::var("LYCENTO_API_KEY").ok();
-        let checkout_url = std::env::var("LYCENTO_CHECKOUT_URL")
-            .unwrap_or_else(|_| format!("{}/checkout", base_url));
+        let checkout_url =
+            resolve_checkout_url(std::env::var("LYCENTO_CHECKOUT_URL").ok(), &base_url);
         let grace_days = std::env::var("LYCENTO_GRACE_DAYS")
             .ok()
             .and_then(|v| v.parse::<i64>().ok())
@@ -211,5 +234,59 @@ impl LicenseManager {
             "invalid" => LicenseStatus::Invalid,
             _ => LicenseStatus::Unknown,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn resolves_debug_default_base_url() {
+        assert_eq!(default_base_url(true), "https://lycento.test/");
+    }
+
+    #[test]
+    fn resolves_production_default_base_url() {
+        assert_eq!(default_base_url(false), "https://lycento.tech/");
+    }
+
+    #[test]
+    fn normalizes_base_url_without_trailing_slash() {
+        assert_eq!(
+            normalize_base_url("https://lycento.test/"),
+            "https://lycento.test"
+        );
+        assert_eq!(
+            normalize_base_url("https://lycento.test"),
+            "https://lycento.test"
+        );
+    }
+
+    #[test]
+    fn derives_checkout_url_from_normalized_base_url() {
+        assert_eq!(
+            resolve_checkout_url(None, "https://lycento.test/"),
+            "https://lycento.test/checkout"
+        );
+    }
+
+    #[test]
+    fn preserves_explicit_checkout_url() {
+        assert_eq!(
+            resolve_checkout_url(
+                Some("https://checkout.lycento.test/subscribe".to_string()),
+                "https://lycento.test/"
+            ),
+            "https://checkout.lycento.test/subscribe"
+        );
+    }
+
+    #[test]
+    fn resolves_base_url_from_env_value() {
+        assert_eq!(
+            resolve_base_url(Some("https://staging.lycento.test/".to_string()), true),
+            "https://staging.lycento.test"
+        );
     }
 }

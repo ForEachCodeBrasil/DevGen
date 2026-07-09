@@ -48,10 +48,11 @@ const categories = computed(() => {
   return ['All', ...Array.from(cats).sort()]
 })
 
+// Free utilities first (habit), then Pro conversion drivers
 const PRIORITY_ORDER = [
-  'cpf', 'cnpj', 'cep', 'person', 'name', 'bank_account',
-  'rg', 'cnh', 'pis', 'titulo_eleitor', 'company',
-  'vehicle', 'vehicle_plate', 'credit_card', 'password', 'uuid', 'random_number'
+  'uuid', 'password', 'lorem_ipsum', 'random_number', 'nick', 'qrcode', 'name',
+  'cpf', 'cnpj', 'cep', 'person', 'company', 'rg', 'cnh', 'pis',
+  'titulo_eleitor', 'bank_account', 'credit_card', 'vehicle', 'vehicle_plate'
 ]
 
 const filteredGenerators = computed(() => {
