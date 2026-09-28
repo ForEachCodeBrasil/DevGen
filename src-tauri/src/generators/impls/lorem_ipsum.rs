@@ -12,7 +12,6 @@ impl Generator for LoremIpsumGenerator {
             name: "Lorem Ipsum".into(),
             category: GeneratorCategory::Utilities,
             description: "Gera texto placeholder (Lorem Ipsum).".into(),
-            requires_pro: false,
             options: Some(json!({
                 "fields": [
                     {

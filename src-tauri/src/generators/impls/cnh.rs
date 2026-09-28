@@ -12,7 +12,6 @@ impl Generator for CnhGenerator {
             name: "CNH".into(),
             category: GeneratorCategory::Documents,
             description: "Gera um número de Carteira Nacional de Habilitação válido.".into(),
-            requires_pro: false,
             options: Some(serde_json::json!({
                 "fields": []
             })),

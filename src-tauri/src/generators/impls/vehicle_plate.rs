@@ -13,7 +13,6 @@ impl Generator for VehiclePlateGenerator {
             name: "Placa de Veículo".into(),
             category: GeneratorCategory::Vehicle,
             description: "Gera placas de veículos nos formatos Antigo e Mercosul.".into(),
-            requires_pro: false,
             options: Some(json!({
                 "fields": [
                     {

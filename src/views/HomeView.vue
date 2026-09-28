@@ -22,7 +22,6 @@ interface GeneratorDefinition {
   name: string
   category: string
   description: string
-  requires_pro: boolean
 }
 
 const router = useRouter()
@@ -48,7 +47,7 @@ const categories = computed(() => {
   return ['All', ...Array.from(cats).sort()]
 })
 
-// Free utilities first (habit), then Pro conversion drivers
+// Daily utilities first, then BR documents and entity packs
 const PRIORITY_ORDER = [
   'uuid', 'password', 'lorem_ipsum', 'random_number', 'nick', 'qrcode', 'name',
   'cpf', 'cnpj', 'cep', 'person', 'company', 'rg', 'cnh', 'pis',
@@ -204,12 +203,6 @@ onMounted(() => loadGenerators())
         </div>
         
         <div class="flex items-center gap-3">
-          <span
-            v-if="gen.requires_pro"
-            class="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded-sm bg-warning-amber/10 text-warning-amber border border-warning-amber/20 font-bold"
-          >
-            PRO
-          </span>
           <ChevronRight class="w-4 h-4 text-gray-700 group-hover:text-neon-green group-hover:translate-x-0.5 transition-all" />
         </div>
       </button>

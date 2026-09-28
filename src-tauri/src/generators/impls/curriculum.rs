@@ -14,7 +14,6 @@ impl Generator for CurriculumGenerator {
             name: "Gerador de Currículo".into(),
             category: GeneratorCategory::Person,
             description: "Gera um currículo básico em Markdown.".into(),
-            requires_pro: false,
             options: Some(json!({
                 "fields": [
                     {

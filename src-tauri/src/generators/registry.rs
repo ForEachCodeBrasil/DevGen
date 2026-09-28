@@ -35,18 +35,6 @@ impl GeneratorRegistry {
         list
     }
 
-    pub fn list_with_access(
-        &self,
-        pro_generators: &std::collections::HashSet<String>,
-        is_pro: bool,
-    ) -> Vec<GeneratorDefinition> {
-        let mut list = self.list();
-        for def in &mut list {
-            def.requires_pro = pro_generators.contains(&def.id) && !is_pro;
-        }
-        list
-    }
-
     pub fn generate(
         &self,
         id: &str,
@@ -80,7 +68,6 @@ mod tests {
                 name: self.name.into(),
                 category: self.category,
                 description: "stub".into(),
-                requires_pro: false,
                 options: None,
             }
         }

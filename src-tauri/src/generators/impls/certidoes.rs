@@ -77,7 +77,6 @@ impl Generator for CertidaoNascimentoGenerator {
             name: "Certidão de Nascimento".into(),
             category: GeneratorCategory::Documents,
             description: "Gera um número de matrícula de Certidão de Nascimento.".into(),
-            requires_pro: false,
             options: Some(serde_json::json!({
                 "fields": [{ "name": "mask", "type": "boolean", "label": "Formatado", "default": true }]
             })),
@@ -104,7 +103,6 @@ impl Generator for CertidaoCasamentoGenerator {
             name: "Certidão de Casamento".into(),
             category: GeneratorCategory::Documents,
             description: "Gera um número de matrícula de Certidão de Casamento.".into(),
-            requires_pro: false,
             options: Some(serde_json::json!({
                 "fields": [{ "name": "mask", "type": "boolean", "label": "Formatado", "default": true }]
             })),
@@ -131,7 +129,6 @@ impl Generator for CertidaoObitoGenerator {
             name: "Certidão de Óbito".into(),
             category: GeneratorCategory::Documents,
             description: "Gera um número de matrícula de Certidão de Óbito.".into(),
-            requires_pro: false,
             options: Some(serde_json::json!({
                 "fields": [{ "name": "mask", "type": "boolean", "label": "Formatado", "default": true }]
             })),

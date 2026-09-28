@@ -13,7 +13,6 @@ impl Generator for CepGenerator {
             name: "CEP".into(),
             category: GeneratorCategory::Documents,
             description: "Gera um Código de Endereçamento Postal (CEP) brasileiro.".into(),
-            requires_pro: false,
             options: Some(json!({
                 "fields": [
                     {

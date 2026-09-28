@@ -1,14 +1,11 @@
 pub mod datasets;
 mod generators;
-mod license;
 mod store;
 
 use generators::{
     registry::GeneratorRegistry, AppPreferences, GenerateRequest, GenerateResponse,
     GeneratorDefinition, GeneratorError, QuickGenerateResponse,
 };
-use license::LicenseManager;
-use std::collections::HashSet;
 use std::sync::Arc;
 use store::Store;
 use tauri::{
@@ -20,16 +17,11 @@ use tauri::{
 struct AppState {
     registry: GeneratorRegistry,
     store: Arc<Store>,
-    license: LicenseManager,
-    pro_generators: HashSet<String>,
 }
 
 #[tauri::command]
 fn list_generators(state: State<'_, AppState>) -> Vec<GeneratorDefinition> {
-    let access = state.license.resolve_access_tier(&state.store);
-    state
-        .registry
-        .list_with_access(&state.pro_generators, access.tier.is_pro())
+    state.registry.list()
 }
 
 #[tauri::command]
@@ -37,16 +29,6 @@ fn generate(
     state: State<'_, AppState>,
     req: GenerateRequest,
 ) -> Result<GenerateResponse, GeneratorError> {
-    if state.pro_generators.contains(&req.generator_id)
-        && !state
-            .license
-            .resolve_access_tier(&state.store)
-            .tier
-            .is_pro()
-    {
-        return Err(GeneratorError::LicenseRequired);
-    }
-
     let result = state.registry.generate(&req.generator_id, req.options)?;
 
     // Record history
@@ -99,16 +81,6 @@ fn quick_generate(
         }
     };
 
-    if state.pro_generators.contains(generator_id)
-        && !state
-            .license
-            .resolve_access_tier(&state.store)
-            .tier
-            .is_pro()
-    {
-        return Err(GeneratorError::LicenseRequired);
-    }
-
     let result = state.registry.generate(generator_id, options)?;
 
     // Record history
@@ -135,72 +107,6 @@ fn get_preferences(state: State<'_, AppState>) -> Result<AppPreferences, String>
 #[tauri::command]
 fn save_preferences(state: State<'_, AppState>, prefs: AppPreferences) -> Result<(), String> {
     state.store.update(|p| *p = prefs)
-}
-
-#[tauri::command]
-fn get_access_tier(state: State<'_, AppState>) -> Result<license::LicenseState, String> {
-    Ok(state.license.resolve_access_tier(&state.store))
-}
-
-#[derive(Debug, serde::Deserialize)]
-struct ActivateLicenseRequest {
-    key: String,
-    email: Option<String>,
-}
-
-#[tauri::command]
-async fn activate_license(
-    state: State<'_, AppState>,
-    req: ActivateLicenseRequest,
-) -> Result<license::LicenseState, String> {
-    let next = state
-        .license
-        .activate(&state.store, &req.key, req.email.as_deref())
-        .await?;
-    Ok(next)
-}
-
-#[tauri::command]
-async fn validate_license(state: State<'_, AppState>) -> Result<license::LicenseState, String> {
-    let next = state.license.validate(&state.store).await?;
-    Ok(next)
-}
-
-#[tauri::command]
-async fn deactivate_license(state: State<'_, AppState>) -> Result<(), String> {
-    state.license.deactivate(&state.store).await
-}
-
-#[tauri::command]
-fn open_checkout(state: State<'_, AppState>) -> Result<(), String> {
-    open_external_url(&state.license.checkout_url())
-}
-
-fn open_external_url(url: &str) -> Result<(), String> {
-    #[cfg(target_os = "macos")]
-    let mut cmd = {
-        let mut c = std::process::Command::new("open");
-        c.arg(url);
-        c
-    };
-
-    #[cfg(target_os = "windows")]
-    let mut cmd = {
-        let mut c = std::process::Command::new("cmd");
-        c.args(["/C", "start", "", url]);
-        c
-    };
-
-    #[cfg(all(unix, not(target_os = "macos")))]
-    let mut cmd = {
-        let mut c = std::process::Command::new("xdg-open");
-        c.arg(url);
-        c
-    };
-
-    cmd.spawn()
-        .map_err(|e| format!("Failed to open checkout URL: {}", e))?;
-    Ok(())
 }
 
 #[tauri::command]
@@ -278,47 +184,8 @@ fn show_main_window(app: &tauri::AppHandle, tray_click_position: Option<Physical
     }
 }
 
-/// Free tier (not in this set): uuid, password, lorem_ipsum, random_number,
-/// nick, qrcode, name — small daily utilities that do not unlock BR form flows.
-///
-/// Everything else requires DevGen Pro (docs BR, entity packs, payments).
-fn pro_generators() -> HashSet<String> {
-    [
-        // Documents BR (core conversion drivers)
-        "cpf",
-        "cnpj",
-        "cep",
-        "rg",
-        "cnh",
-        "pis",
-        "titulo_eleitor",
-        "inscricao_estadual",
-        "certidao_nascimento",
-        "certidao_casamento",
-        "certidao_obito",
-        // Entity packs
-        "person",
-        "company",
-        "vehicle",
-        "vehicle_plate",
-        "renavam",
-        "curriculum",
-        // Finance / KYC helpers
-        "bank_account",
-        "credit_card",
-        // Premium utilities
-        "lorem_pixel",
-        "meta_tags",
-    ]
-    .into_iter()
-    .map(|s| s.to_string())
-    .collect()
-}
-
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let _ = dotenvy::dotenv();
-
     let registry = GeneratorRegistry::new();
 
     // Register generators
@@ -358,11 +225,6 @@ pub fn run() {
             quick_generate,
             get_preferences,
             save_preferences,
-            get_access_tier,
-            activate_license,
-            validate_license,
-            deactivate_license,
-            open_checkout,
             exit_app,
             rebuild_tray_quick_menu
         ])
@@ -371,14 +233,7 @@ pub fn run() {
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
             let store = Arc::new(Store::new(app.app_handle()));
-            let license = LicenseManager::from_env();
-            let pro_generators = pro_generators();
-            app.manage(AppState {
-                registry,
-                store,
-                license,
-                pro_generators,
-            });
+            app.manage(AppState { registry, store });
 
             if let Some(window) = app.get_webview_window("main") {
                 let _ = window.set_always_on_top(true);
@@ -389,8 +244,7 @@ pub fn run() {
             let sep2 = PredefinedMenuItem::separator(app)?;
             let quit_i = MenuItem::with_id(app, "quit", "Sair", true, None::<&str>)?;
 
-            // Free-tier quick actions for tray (Pro items stay available after license
-            // via rebuild_tray_quick_menu / preferences).
+            // Default tray quick actions; user choices rebuild via rebuild_tray_quick_menu.
             let uuid_item =
                 MenuItem::with_id(app, "quick.copy_uuid", "UUID v4", true, None::<&str>)?;
             let password_item = MenuItem::with_id(

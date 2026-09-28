@@ -14,7 +14,6 @@ impl Generator for LoremPixelGenerator {
             name: "Lorem Pixel".into(),
             category: GeneratorCategory::Utilities,
             description: "Gera imagens de placeholder coloridas (offline).".into(),
-            requires_pro: false,
             options: Some(serde_json::json!({
                 "fields": [
                     {

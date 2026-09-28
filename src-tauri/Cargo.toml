@@ -3,6 +3,7 @@ name = "tauri-app"
 version = "0.1.0"
 description = "DevGen desktop app for offline fake data generation"
 authors = ["DevGen Contributors"]
+license = "MIT"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -28,7 +29,3 @@ imageproc = "0.23"
 rusttype = "0.9"
 qrcode = "0.12"
 base64 = "0.21"
-reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
-lycento-sdk = "1.0.1"
-tokio = { version = "1", features = ["full"] }
-dotenvy = "0.15"

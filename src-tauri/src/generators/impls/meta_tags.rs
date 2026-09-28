@@ -12,7 +12,6 @@ impl Generator for MetaTagsGenerator {
             name: "Meta Tags".into(),
             category: GeneratorCategory::Utilities,
             description: "Gera meta tags HTML básicas para SEO.".into(),
-            requires_pro: false,
             options: Some(json!({
                 "fields": [
                     {

@@ -22,15 +22,13 @@ describe('useGeneratorsStore', () => {
                 id: 'cpf',
                 name: 'CPF',
                 category: 'documents',
-                description: 'Gera CPF',
-                requires_pro: false
+                description: 'Gera CPF'
             },
             {
                 id: 'person',
                 name: 'Pessoa',
                 category: 'person',
-                description: 'Gera pessoa',
-                requires_pro: true
+                description: 'Gera pessoa'
             }
         ]
         invokeMock.mockResolvedValueOnce(defs)
@@ -47,9 +45,9 @@ describe('useGeneratorsStore', () => {
     it('returns unique categories preserving appearance order', () => {
         const store = useGeneratorsStore()
         store.generators = [
-            { id: '1', name: 'A', category: 'documents', description: '', requires_pro: false },
-            { id: '2', name: 'B', category: 'person', description: '', requires_pro: false },
-            { id: '3', name: 'C', category: 'documents', description: '', requires_pro: false }
+            { id: '1', name: 'A', category: 'documents', description: '' },
+            { id: '2', name: 'B', category: 'person', description: '' },
+            { id: '3', name: 'C', category: 'documents', description: '' }
         ]
 
         expect(store.categories).toEqual(['documents', 'person'])

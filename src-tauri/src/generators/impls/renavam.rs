@@ -12,7 +12,6 @@ impl Generator for RenavamGenerator {
             name: "Renavam".into(),
             category: GeneratorCategory::Vehicle,
             description: "Gera um código Renavam válido.".into(),
-            requires_pro: false,
             options: Some(serde_json::json!({
                 "fields": []
             })),

@@ -15,7 +15,6 @@ impl Generator for QrCodeGenerator {
             name: "QR Code".into(),
             category: GeneratorCategory::Utilities,
             description: "Gera um QR Code a partir de um texto.".into(),
-            requires_pro: false,
             options: Some(serde_json::json!({
                 "fields": [
                     {

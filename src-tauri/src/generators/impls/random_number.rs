@@ -13,7 +13,6 @@ impl Generator for RandomNumberGenerator {
             name: "Número Aleatório".into(),
             category: GeneratorCategory::Utilities,
             description: "Gera um número aleatório com tamanho configurável.".into(),
-            requires_pro: false,
             options: Some(json!({
                 "fields": [
                     {

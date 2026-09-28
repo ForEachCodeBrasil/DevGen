@@ -36,10 +36,6 @@ onMounted(async () => {
 })
 
 async function handleGenerate() {
-  if (generator.value?.requires_pro) {
-    error.value = 'Este gerador está disponível apenas no DevGen Pro. Ative sua licença nas configurações.'
-    return
-  }
   loading.value = true
   result.value = null
   error.value = null
@@ -148,27 +144,15 @@ function handleCopy() {
       <!-- Action Button -->
       <button
         @click="handleGenerate"
-        :disabled="loading || generator.requires_pro"
+        :disabled="loading"
         class="w-full btn btn-primary py-3 text-sm font-bold tracking-wide uppercase shadow-neon disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed group"
       >
         <span class="flex items-center gap-2">
           <Loader2 v-if="loading" class="w-4 h-4 animate-spin" />
           <Play v-else class="w-4 h-4 group-hover:fill-current" />
-          {{ generator.requires_pro ? 'PRO_ONLY' : (result ? 'REGENERATE' : 'GENERATE') }}
+          {{ result ? 'REGENERATE' : 'GENERATE' }}
         </span>
       </button>
-
-      <div
-        v-if="generator.requires_pro"
-        class="p-3 rounded-sm border border-warning-amber/20 bg-warning-amber/10 flex items-start gap-3"
-      >
-        <div class="text-warning-amber shrink-0 mt-0.5">
-           <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-        </div>
-        <p class="text-xs text-warning-amber/90">
-          This generator requires a <strong>PRO</strong> license. Please upgrade in Settings to access this feature.
-        </p>
-      </div>
 
       <!-- Result Area -->
       <div v-if="result" class="card relative p-0 overflow-hidden group border-neon-green/30">

@@ -31,47 +31,16 @@ const setupQuickActionListener = async () => {
 };
 
 let unlistenFn: (() => void) | undefined;
-let revalidateTimer: number | undefined;
-
-const shouldRevalidate = (lastValidatedAt?: string | null) => {
-  if (!lastValidatedAt) return true;
-  const last = Date.parse(lastValidatedAt);
-  if (Number.isNaN(last)) return true;
-  return Date.now() - last >= 24 * 60 * 60 * 1000;
-};
-
 onMounted(async () => {
   unlistenFn = await setupQuickActionListener();
 
   const prefs = usePreferencesStore();
   await prefs.loadPreferences();
-  const state = prefs.licenseState;
-  if (state.license_key && state.instance_id && shouldRevalidate(state.last_validated_at)) {
-    try {
-      await prefs.validateLicense();
-    } catch (e) {
-      console.error('Initial license validation failed:', e);
-    }
-  }
-
-  revalidateTimer = window.setInterval(async () => {
-    const next = prefs.licenseState;
-    if (!next.license_key || !next.instance_id) return;
-    if (!shouldRevalidate(next.last_validated_at)) return;
-    try {
-      await prefs.validateLicense();
-    } catch (e) {
-      console.error('Scheduled license validation failed:', e);
-    }
-  }, 60 * 60 * 1000);
 });
 
 onUnmounted(() => {
   if (unlistenFn) {
     unlistenFn();
-  }
-  if (revalidateTimer) {
-    window.clearInterval(revalidateTimer);
   }
 });
 </script>

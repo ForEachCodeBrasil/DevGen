@@ -130,7 +130,6 @@ impl Generator for CnpjGenerator {
             name: "CNPJ".into(),
             category: GeneratorCategory::Documents,
             description: "Gera CNPJ válido (numérico legado ou alfanumérico RFB 2026), com dígitos verificadores corretos.".into(),
-            requires_pro: false,
             options: Some(serde_json::json!({
                 "fields": [
                     {

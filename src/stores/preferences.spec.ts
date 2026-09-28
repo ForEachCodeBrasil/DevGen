@@ -23,15 +23,7 @@ describe('usePreferencesStore', () => {
             locale: 'en-US',
             quick_actions: ['quick.copy_cpf_masked'],
             history: [],
-            generator_last_options: {},
-            license_state: {
-                tier: 'free',
-                status: 'inactive',
-                license_key: null,
-                instance_id: null,
-                customer_email: null,
-                last_validated_at: null
-            }
+            generator_last_options: {}
         }
         invokeMock.mockResolvedValueOnce(prefs)
 
@@ -49,15 +41,7 @@ describe('usePreferencesStore', () => {
             locale: 'pt-BR',
             quick_actions: ['quick.copy_password'],
             history: ['password: abc123'],
-            generator_last_options: { password: { length: 16 } },
-            license_state: {
-                tier: 'pro',
-                status: 'active',
-                license_key: 'abc',
-                instance_id: 'inst',
-                customer_email: 'test@example.com',
-                last_validated_at: '2025-01-01T00:00:00Z'
-            }
+            generator_last_options: { password: { length: 16 } }
         }
         invokeMock.mockResolvedValueOnce(undefined)
 
